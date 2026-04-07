@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/xampp/htdocs/**)",
+      "Bash(mv projectgizi/prd.md /tmp/prd.md)",
+      "Bash(npx create-next-app@latest projectgizi --typescript --tailwind --app --src-dir --import-alias \"@/*\" --no-git --yes)",
+      "Bash(mv /tmp/prd.md projectgizi/)",
+      "Bash(npm install:*)"
+    ]
+  }
+}

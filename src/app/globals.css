@@ -1,0 +1,154 @@
+@import "tailwindcss";
+
+/* Enable class-based dark mode for Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --color-primary: #16a34a;
+  --color-primary-light: #22c55e;
+  --color-primary-dark: #15803d;
+
+  --color-warning: #f59e0b;
+  --color-warning-light: #fbbf24;
+  --color-warning-dark: #d97706;
+
+  --color-danger: #dc2626;
+  --color-danger-light: #ef4444;
+  --color-danger-dark: #b91c1c;
+
+  --color-info: #3b82f6;
+  --color-info-light: #60a5fa;
+  --color-info-dark: #2563eb;
+
+  --color-stunting: #ea580c;
+  --color-stunting-light: #fb923c;
+  --color-stunting-dark: #c2410c;
+
+  --font-sans: var(--font-nunito), "Nunito", sans-serif;
+
+  --color-bg: #ffffff;
+  --color-bg-secondary: #f8fafc;
+  --color-text: #0f172a;
+  --color-text-secondary: #475569;
+  --color-border: #e2e8f0;
+  --color-card: #ffffff;
+}
+
+/* Dark mode */
+.dark {
+  --color-bg: #0f172a;
+  --color-bg-secondary: #1e293b;
+  --color-text: #f1f5f9;
+  --color-text-secondary: #94a3b8;
+  --color-border: #334155;
+  --color-card: #1e293b;
+}
+
+* {
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #94a3b8;
+  border-radius: 3px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background-color: #475569;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Smooth transitions for theme switching */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color;
+  transition-duration: 0.2s;
+  transition-timing-function: ease;
+}
+
+/* Don't animate transitions on page load */
+.theme-transitioning, .theme-transitioning *, .theme-transitioning *::before, .theme-transitioning *::after {
+  transition-duration: 0s !important;
+}
+
+/* Print styles */
+@media print {
+  /* Hide toolbar when printing */
+  .sticky,
+  nav,
+  header,
+  aside,
+  footer:not(#print-area *) {
+    display: none !important;
+  }
+
+  /* Print area styling */
+  #print-area {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Ensure text is black when printing */
+  #print-area * {
+    color: black !important;
+    background: white !important;
+    border-color: #e2e8f0 !important;
+  }
+
+  /* Green header should stay green */
+  #print-area .bg-green-600 {
+    background-color: #16a34a !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Green text stays green */
+  #print-area .text-green-200 {
+    color: #bbf7d0 !important;
+  }
+
+  /* Status badge colors */
+  #print-area .bg-green-50 { background-color: #f0fdf4 !important; }
+  #print-area .bg-red-50 { background-color: #fef2f2 !important; }
+  #print-area .bg-amber-50 { background-color: #fffbeb !important; }
+  #print-area .bg-orange-50 { background-color: #fff7ed !important; }
+  #print-area .bg-orange-100 { background-color: #ffedd5 !important; }
+
+  /* Status text colors */
+  #print-area .text-green-700 { color: #15803d !important; }
+  #print-area .text-red-700 { color: #b91c1c !important; }
+  #print-area .text-amber-700 { color: #b45309 !important; }
+  #print-area .text-orange-700 { color: #c2410c !important; }
+  #print-area .text-orange-800 { color: #9a3412 !important; }
+
+  /* Remove transitions for print */
+  #print-area * {
+    transition: none !important;
+  }
+
+  body {
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
