@@ -8,8 +8,8 @@ import bcrypt from "bcryptjs";
 async function seed() {
   const connection = await mysql.createConnection({
     host: "localhost",
-    user: "root",
-    password: "",
+    user: "projectgizi",
+    password: "projectgizi123",
     database: "projectgizi",
   });
 
