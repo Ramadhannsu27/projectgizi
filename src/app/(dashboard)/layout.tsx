@@ -46,7 +46,7 @@ export default function DashboardLayout({
           <Menu className="h-5 w-5 text-slate-600 dark:text-slate-300" />
         </button>
         <img src="/logo-mbg.webp" alt="MBG" className="h-7 w-auto flex-shrink-0" />
-        <span className="font-bold text-slate-800 dark:text-white text-sm truncate">Project Gizi</span>
+        <span className="font-bold text-slate-800 dark:text-white text-sm truncate">Monitoring Gizi</span>
       </div>
 
       {/* Mobile sidebar overlay */}
