@@ -46,6 +46,17 @@ export default function DashboardLayout({
         <span className="font-bold text-slate-800 dark:text-white text-sm">Project Gizi</span>
       </div>
 
+      {/* Desktop mode hint — floating button for mobile */}
+      <div className="lg:hidden fixed bottom-4 right-4 z-40">
+        <a
+          href="javascript:void(0)"
+          onClick={() => alert('Aktifkan Desktop Mode di browser:\n\nChrome: ⋮ → ✅ Desktop site\nSafari: Share → Desktop Website\n\nAtau putar HP ke landscape')}
+          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-3 rounded-2xl shadow-lg text-xs font-semibold"
+        >
+          💻 Desktop Mode
+        </a>
+      </div>
+
       {/* Mobile sidebar overlay */}
       {mobileOpen && (
         <div
