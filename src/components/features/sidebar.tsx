@@ -26,7 +26,7 @@ const navItems = [
   { href: "/laporan", label: "Laporan", icon: FileText },
 ];
 
-export function Sidebar() {
+export function Sidebar({ hideHeader = false }: { hideHeader?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
@@ -84,27 +84,29 @@ export function Sidebar() {
       )}
     >
       {/* Logo */}
-      <div
-        className={cn(
-          "flex items-center gap-3 px-4 py-3 border-b transition-all flex-shrink-0",
-          collapsed && "justify-center",
-          "border-slate-700 dark:border-slate-700"
-        )}
-      >
-        <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-sm flex-shrink-0 overflow-hidden ring-2 ring-green-500/10">
-          <img src="/logo-mbg.webp" alt="MBG" className="w-full h-full object-contain" />
-        </div>
-        {!collapsed && (
-          <div className="min-w-0">
-            <h1 className="text-base font-extrabold text-green-400 leading-tight tracking-tight">
-              Monitoring Gizi
-            </h1>
-            <p className="text-[11px] text-slate-400 leading-tight">
-              SD / MI / SMP / SMA Negeri
-            </p>
+      {!hideHeader && (
+        <div
+          className={cn(
+            "flex items-center gap-3 px-4 py-3 border-b transition-all flex-shrink-0",
+            collapsed && "justify-center",
+            "border-slate-700 dark:border-slate-700"
+          )}
+        >
+          <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-sm flex-shrink-0 overflow-hidden ring-2 ring-green-500/10">
+            <img src="/logo-mbg.webp" alt="MBG" className="w-full h-full object-contain" />
           </div>
-        )}
-      </div>
+          {!collapsed && (
+            <div className="min-w-0">
+              <h1 className="text-base font-extrabold text-green-400 leading-tight tracking-tight">
+                Monitoring Gizi
+              </h1>
+              <p className="text-[11px] text-slate-400 leading-tight">
+                SD / MI / SMP / SMA Negeri
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Status indicators */}
       {/* Status indicators */}
