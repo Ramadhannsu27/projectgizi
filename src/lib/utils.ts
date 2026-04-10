@@ -1,10 +1,19 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { format, differenceInMonths, parseISO } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 import { id } from "date-fns/locale";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+// Konversi ke WIB (UTC+7)
+const WIB_TIMEZONE = "Asia/Jakarta";
+
+function toWIB(date: string | Date): Date {
+  const d = typeof date === "string" ? parseISO(date) : date;
+  return toZonedTime(d, WIB_TIMEZONE);
 }
 
 export function calculateAge(birthDate: string | Date): number {
@@ -22,7 +31,7 @@ export function calculateAgeYears(birthDate: string | Date): string {
 }
 
 export function formatDate(date: string | Date, pattern = "dd MMMM yyyy"): string {
-  const d = typeof date === "string" ? parseISO(date) : date;
+  const d = toWIB(date);
   return format(d, pattern, { locale: id });
 }
 
@@ -32,4 +41,13 @@ export function formatShortDate(date: string | Date): string {
 
 export function formatDateTime(date: string | Date): string {
   return formatDate(date, "dd MMM yyyy, HH:mm");
+}
+
+export function formatTime(date: string | Date): string {
+  return formatDate(date, "HH:mm");
+}
+
+export function isAuthenticated(): boolean {
+  if (typeof window === "undefined") return false;
+  return !!localStorage.getItem("auth_token");
 }
