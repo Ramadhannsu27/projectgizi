@@ -29,7 +29,7 @@ export function TopBar() {
         {/* Title */}
         <div>
           <h1 className="text-lg font-bold text-slate-800 dark:text-slate-100">
-            Dashboard
+            Monitoring Gizi
           </h1>
         </div>
 
