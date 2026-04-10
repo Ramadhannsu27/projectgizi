@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { students, measurements } from "@/db/schema";
-import { sql, gte } from "drizzle-orm";
+import { sql, eq } from "drizzle-orm";
 
 export async function GET() {
   try {
@@ -18,42 +18,51 @@ export async function GET() {
     today.setHours(0, 0, 0, 0);
     const todayStr = today.toISOString().slice(0, 19).replace("T", " ");
 
-    // Today's measurements
+    // Today's unique students measured
     const [todayResult] = await db
-      .select({ count: sql<number>`count(*)` })
+      .select({ count: sql<number>`count(DISTINCT student_id)` })
       .from(measurements)
-      .where(gte(measurements.checked_at, sql`${todayStr}`));
+      .where(sql`${measurements.checked_at} >= ${todayStr}`);
     const diperiksaHariIni = Number(todayResult?.count) || 0;
 
-    // Status distribution
-    const distribution = await db
+    // Status distribution based on latest measurement per student
+    const latestPerStudent = await db
       .select({
         status: measurements.status_category,
         count: sql<number>`count(*)`,
       })
-      .from(measurements)
+      .from(students)
+      .innerJoin(measurements, eq(students.id, measurements.student_id))
+      .innerJoin(
+        sql`(
+          SELECT student_id, MAX(checked_at) as max_date
+          FROM measurements
+          GROUP BY student_id
+        ) as latest`,
+        sql`latest.student_id = ${measurements.student_id} AND latest.max_date = ${measurements.checked_at}`
+      )
       .groupBy(measurements.status_category);
 
-    const totalMeasured = distribution.reduce(
-      (sum: number, d: typeof distribution[number]) => sum + Number(d.count),
+    const totalMeasured = latestPerStudent.reduce(
+      (sum: number, d: typeof latestPerStudent[number]) => sum + Number(d.count),
       0
     );
     const normalCount = Number(
-      distribution.find(
-        (d: typeof distribution[number]) => d.status === "Normal"
+      latestPerStudent.find(
+        (d: typeof latestPerStudent[number]) => d.status === "Normal"
       )?.count || 0
     );
     const perluPerhatian =
-      distribution
+      latestPerStudent
         .filter(
-          (d: typeof distribution[number]) =>
+          (d: typeof latestPerStudent[number]) =>
             d.status === "Obesitas" ||
             d.status === "Overweight" ||
             d.status === "Stunting" ||
             d.status === "Stunting Berat"
         )
         .reduce(
-          (sum: number, d: typeof distribution[number]) => sum + Number(d.count),
+          (sum: number, d: typeof latestPerStudent[number]) => sum + Number(d.count),
           0
         ) || 0;
     const persentaseNormal =
@@ -66,21 +75,21 @@ export async function GET() {
       diperiksaHariIni,
       persentaseNormal,
       perluPerhatian,
-      distribution,
+      distribution: latestPerStudent.map((d) => ({ status: d.status, count: d.count })),
       // Breakdown for laporan page
       total: totalMeasured,
       normal: normalCount,
       overweight: Number(
-        distribution.find((d) => d.status === "Overweight")?.count || 0
+        latestPerStudent.find((d) => d.status === "Overweight")?.count || 0
       ),
       obesitas: Number(
-        distribution.find((d) => d.status === "Obesitas")?.count || 0
+        latestPerStudent.find((d) => d.status === "Obesitas")?.count || 0
       ),
       stunting: Number(
-        distribution.find((d) => d.status === "Stunting")?.count || 0
+        latestPerStudent.find((d) => d.status === "Stunting")?.count || 0
       ),
       severe_stunting: Number(
-        distribution.find((d) => d.status === "Stunting Berat")?.count || 0
+        latestPerStudent.find((d) => d.status === "Stunting Berat")?.count || 0
       ),
     });
   } catch (error) {

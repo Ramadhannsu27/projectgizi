@@ -1,7 +1,7 @@
 {
   "name": "MBG",
   "short_name": "MBG",
-  "description": "Pemantauan Status Gizi Siswa — UKS Sekolah",
+  "description": "Pemantauan Status Gizi Siswa — SD / MI / SMP / SMA Negeri",
   "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#ffffff",

@@ -26,11 +26,11 @@
 
   --font-sans: var(--font-nunito), "Nunito", sans-serif;
 
-  --color-bg: #ffffff;
-  --color-bg-secondary: #f8fafc;
+  --color-bg: #f1f5f9;
+  --color-bg-secondary: #e2e8f0;
   --color-text: #0f172a;
   --color-text-secondary: #475569;
-  --color-border: #e2e8f0;
+  --color-border: #cbd5e1;
   --color-card: #ffffff;
 }
 
@@ -55,6 +55,25 @@
 
 ::-webkit-scrollbar-track {
   background: transparent;
+}
+
+/* Horizontal scroll with visible dark track */
+.scroll-track-dark::-webkit-scrollbar {
+  height: 6px;
+}
+.scroll-track-dark::-webkit-scrollbar-track {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+.scroll-track-dark::-webkit-scrollbar-thumb {
+  background-color: #64748b;
+  border-radius: 3px;
+}
+.dark .scroll-track-dark::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+.dark .scroll-track-dark::-webkit-scrollbar-thumb {
+  background-color: #475569;
 }
 
 ::-webkit-scrollbar-thumb {

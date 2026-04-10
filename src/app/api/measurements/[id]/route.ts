@@ -1,13 +1,98 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { measurements, students } from "@/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
+
+export async function PUT(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: measurementId } = await params;
+    const db = getDb();
+    const body = await request.json();
+    const id = parseInt(measurementId);
+
+    // Check if measurement exists
+    const [existing] = await db
+      .select()
+      .from(measurements)
+      .where(eq(measurements.id, id))
+      .limit(1);
+
+    if (!existing) {
+      return NextResponse.json(
+        { error: "Data pemeriksaan tidak ditemukan" },
+        { status: 404 }
+      );
+    }
+
+    // Recalculate status if height or weight changed
+    let status_category = existing.status_category;
+    let zScore = existing.z_score || "0";
+
+    try {
+      const calcRes = await fetch(
+        `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/calculate`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            student_id: existing.student_id,
+            height: body.height ?? parseFloat(existing.height),
+            weight: body.weight ?? parseFloat(existing.weight),
+          }),
+        }
+      );
+      if (calcRes.ok) {
+        const calc = await calcRes.json();
+        status_category = calc.status || status_category;
+        zScore = calc.zScore?.toString() || zScore;
+      }
+    } catch {
+      // Keep existing values
+    }
+
+    const newHeight = body.height ?? parseFloat(existing.height);
+    const newWeight = body.weight ?? parseFloat(existing.weight);
+    const bmi = newWeight / Math.pow(newHeight / 100, 2);
+
+    // Instead of updating, INSERT a new record to preserve history
+    // The old record stays as history, new record becomes the current one
+    const result = await db
+      .insert(measurements)
+      .values({
+        student_id: existing.student_id,
+        user_id: existing.user_id,
+        height: newHeight.toString(),
+        weight: newWeight.toString(),
+        bmi: bmi.toFixed(2),
+        z_score: zScore,
+        status_category,
+        notes: body.notes !== undefined ? body.notes : existing.notes,
+        is_synced: true,
+      });
+
+    const newId = (result as unknown as { insertId: number }).insertId;
+
+    return NextResponse.json({
+      success: true,
+      message: "Data berhasil diperbarui — Riwayat lama tetap disimpan",
+      newId,
+    });
+  } catch (error) {
+    console.error("PUT measurement error:", error);
+    return NextResponse.json(
+      { error: "Gagal memperbarui data" },
+      { status: 500 }
+    );
+  }
+}
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // Public endpoint - no auth required so students/parents can view results via QR
   try {
     const { id: measurementId } = await params;
     const db = getDb();
@@ -15,9 +100,11 @@ export async function GET(
     const [result] = await db
       .select({
         id: measurements.id,
+        student_id: students.id,
         student_name: students.full_name,
         student_nis: students.nis,
         student_class: students.class_name,
+        student_school_name: students.school_name,
         student_gender: students.gender,
         student_birth_date: students.birth_date,
         parent_name: students.parent_name,
@@ -26,30 +113,6 @@ export async function GET(
         bmi: measurements.bmi,
         z_score: measurements.z_score,
         status: measurements.status_category,
-        status_variant: sql<string>`CASE
-          WHEN ${measurements.status_category} = 'Normal' THEN 'normal'
-          WHEN ${measurements.status_category} = 'Obesitas' THEN 'obesitas'
-          WHEN ${measurements.status_category} = 'Overweight' THEN 'overweight'
-          WHEN ${measurements.status_category} = 'Stunting' THEN 'stunting'
-          WHEN ${measurements.status_category} = 'Stunting Berat' THEN 'severely_stunting'
-          ELSE 'secondary'
-        END`.as("status_variant"),
-        bg_color: sql<string>`CASE
-          WHEN ${measurements.status_category} = 'Normal' THEN 'bg-green-50'
-          WHEN ${measurements.status_category} = 'Obesitas' THEN 'bg-red-50'
-          WHEN ${measurements.status_category} = 'Overweight' THEN 'bg-amber-50'
-          WHEN ${measurements.status_category} = 'Stunting' THEN 'bg-orange-50'
-          WHEN ${measurements.status_category} = 'Stunting Berat' THEN 'bg-orange-100'
-          ELSE 'bg-slate-50'
-        END`.as("bg_color"),
-        recommendation: sql<string>`CASE
-          WHEN ${measurements.status_category} = 'Normal' THEN 'Kondisi gizi anak ini baik dan sesuai dengan standar WHO 2007. Pertahankan pola makan seimbang dan aktivitas fisik teratur.'
-          WHEN ${measurements.status_category} = 'Obesitas' THEN 'Anak mengalami obesitas yang memerlukan penanganan segera. Segera konsultasikan ke dokter atau ahli gizi untuk rencana diet dan olahraga yang sesuai.'
-          WHEN ${measurements.status_category} = 'Overweight' THEN 'Perlu perhatian khusus. Disarankan untuk meningkatkan aktivitas fisik dan mengurangi makanan tinggi gula dan lemak.'
-          WHEN ${measurements.status_category} = 'Stunting' THEN 'Anak mengalami stunting. Perbaiki asupan gizi dengan memperbanyak makanan kaya protein, zat besi, dan zinc.'
-          WHEN ${measurements.status_category} = 'Stunting Berat' THEN 'Kondisi stunting berat memerlukan intervensi segera. Segera konsultasikan ke dokter dan ahli gizi.'
-          ELSE 'Silakan konsultasikan hasil ini dengan tenaga kesehatan.'
-        END`.as("recommendation"),
         notes: measurements.notes,
         checked_at: measurements.checked_at,
       })
@@ -65,13 +128,53 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({
-      ...result,
-      bmi: parseFloat(result.bmi),
-      z_score: parseFloat(result.z_score || "0"),
-      height: parseFloat(result.height),
-      weight: parseFloat(result.weight),
-    });
+    // Get all history for this student
+    const history = await db
+      .select({
+        id: measurements.id,
+        height: measurements.height,
+        weight: measurements.weight,
+        bmi: measurements.bmi,
+        z_score: measurements.z_score,
+        status_category: measurements.status_category,
+        notes: measurements.notes,
+        checked_at: measurements.checked_at,
+      })
+      .from(measurements)
+      .innerJoin(students, eq(measurements.student_id, students.id))
+      .where(eq(students.id, Number(result.student_id)))
+      .orderBy(desc(measurements.checked_at));
+
+    const formatted = {
+      id: result.id,
+      student_id: Number(result.student_id),
+      student_name: result.student_name,
+      student_nis: result.student_nis,
+      student_class: result.student_class,
+      student_school_name: result.student_school_name,
+      student_gender: result.student_gender,
+      student_birth_date: result.student_birth_date,
+      parent_name: result.parent_name,
+      height: parseFloat(result.height as string),
+      weight: parseFloat(result.weight as string),
+      bmi: parseFloat(result.bmi as string),
+      z_score: parseFloat((result.z_score as string) || "0"),
+      status: result.status,
+      notes: result.notes,
+      checked_at: result.checked_at,
+      history: history.map((h) => ({
+        id: h.id,
+        height: parseFloat(h.height as string),
+        weight: parseFloat(h.weight as string),
+        bmi: parseFloat(h.bmi as string),
+        z_score: parseFloat((h.z_score as string) || "0"),
+        status: h.status_category,
+        notes: h.notes,
+        checked_at: h.checked_at,
+      })),
+    };
+
+    return NextResponse.json(formatted);
   } catch (error) {
     console.error("GET measurement error:", error);
     return NextResponse.json(
@@ -90,7 +193,6 @@ export async function DELETE(
     const db = getDb();
     const measurementId = parseInt(id);
 
-    // Check if measurement exists first
     const [existing] = await db
       .select()
       .from(measurements)
@@ -110,7 +212,7 @@ export async function DELETE(
   } catch (error) {
     console.error("DELETE measurement error:", error);
     return NextResponse.json(
-      { error: "Gagal menghapus data. Pastikan koneksi database aktif." },
+      { error: "Gagal menghapus data" },
       { status: 500 }
     );
   }

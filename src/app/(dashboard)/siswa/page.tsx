@@ -19,7 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { cn, calculateAgeYears, formatDate } from "@/lib/utils";
+import { cn, calculateAgeYears, formatDate, isAuthenticated } from "@/lib/utils";
 
 const KELAS_OPTIONS = [
   { value: "I", label: "Kelas I" },
@@ -28,6 +28,12 @@ const KELAS_OPTIONS = [
   { value: "IV", label: "Kelas IV" },
   { value: "V", label: "Kelas V" },
   { value: "VI", label: "Kelas VI" },
+  { value: "VII", label: "Kelas VII" },
+  { value: "VIII", label: "Kelas VIII" },
+  { value: "IX", label: "Kelas IX" },
+  { value: "X", label: "Kelas X" },
+  { value: "XI", label: "Kelas XI" },
+  { value: "XII", label: "Kelas XII" },
 ];
 
 const JK_OPTIONS = [
@@ -42,6 +48,7 @@ interface Student {
   gender: "L" | "P";
   birth_date: string;
   class_name: string;
+  school_name: string;
   parent_name: string;
   parent_phone: string;
 }
@@ -52,6 +59,7 @@ interface StudentForm {
   gender: string;
   birth_date: string;
   class_name: string;
+  school_name: string;
   parent_name: string;
   parent_phone: string;
 }
@@ -62,6 +70,7 @@ const emptyForm: StudentForm = {
   gender: "",
   birth_date: "",
   class_name: "",
+  school_name: "SD / MI / SMP / SMA Negeri",
   parent_name: "",
   parent_phone: "",
 };
@@ -79,6 +88,12 @@ export default function SiswaPage() {
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{ inserted: number; skipped: number; message: string } | null>(null);
+  const [sortOrder, setSortOrder] = useState<"fifo" | "lifo">("fifo");
+  const [authed, setAuthed] = useState(false);
+
+  useEffect(() => {
+    setAuthed(isAuthenticated());
+  }, []);
 
   // Handle Excel import
   const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -124,9 +139,9 @@ export default function SiswaPage() {
   const downloadTemplate = async () => {
     const XLSX = await import("xlsx");
     const ws = XLSX.utils.aoa_to_sheet([
-      ["NIS", "Nama", "Jenis Kelamin", "Tanggal Lahir", "Kelas", "Nama Orang Tua", "No HP Orang Tua"],
-      ["2024001", "Ahmad Fauzi", "L", "2009-03-15", "IV", "Budi Santoso", "081234567890"],
-      ["2024002", "Siti Nurhaliza", "P", "2009-07-22", "III", "Hartini", "081234567891"],
+      ["NIS", "Nama", "Jenis Kelamin", "Tanggal Lahir", "Kelas", "Asal Sekolah", "Nama Orang Tua", "No HP Orang Tua"],
+      ["2024001", "Ahmad Fauzi", "L", "2009-03-15", "IV", "SD Negeri 1 Jakarta", "Budi Santoso", "081234567890"],
+      ["2024002", "Siti Nurhaliza", "P", "2009-07-22", "III", "SD Negeri 1 Jakarta", "Hartini", "081234567891"],
     ]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Data Siswa");
@@ -135,10 +150,8 @@ export default function SiswaPage() {
 
   const fetchStudents = useCallback(async () => {
     try {
-      const res = await fetch("/api/students", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-        },
+      const res = await fetch(`/api/students?sort=${sortOrder}`, {
+        headers: authed ? { Authorization: `Bearer ${localStorage.getItem("auth_token")}` } : {},
       });
       if (res.ok) {
         setStudents(await res.json());
@@ -150,11 +163,11 @@ export default function SiswaPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [sortOrder]);
 
   useEffect(() => {
     fetchStudents();
-  }, [fetchStudents]);
+  }, [fetchStudents, authed]);
 
   const filtered = students.filter(
     (s) =>
@@ -169,6 +182,7 @@ export default function SiswaPage() {
     if (!form.gender) errors.gender = "Jenis kelamin wajib dipilih";
     if (!form.birth_date) errors.birth_date = "Tanggal lahir wajib diisi";
     if (!form.class_name) errors.class_name = "Kelas wajib dipilih";
+    if (!form.school_name.trim()) errors.school_name = "Asal sekolah wajib diisi";
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -213,12 +227,14 @@ export default function SiswaPage() {
 
   const handleEdit = (student: Student) => {
     setEditId(student.id);
+    setFormErrors({});
     setForm({
       nis: student.nis,
       full_name: student.full_name,
       gender: student.gender,
       birth_date: student.birth_date,
       class_name: student.class_name,
+      school_name: student.school_name || "SD / MI / SMP / SMA Negeri",
       parent_name: student.parent_name || "",
       parent_phone: student.parent_phone || "",
     });
@@ -281,36 +297,68 @@ export default function SiswaPage() {
           >
             Export CSV
           </a>
-          <label
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer transition-colors"
-          >
-            <Upload className="h-4 w-4" />
-            Import Excel
-            <input
-              type="file"
-              accept=".xlsx,.xls,.csv"
-              className="hidden"
-              onChange={handleImportExcel}
-              disabled={importing}
-            />
-          </label>
-          <Button variant="primary" size="lg" onClick={openAdd}>
-            <Plus className="h-5 w-5" />
-            Tambah Siswa
-          </Button>
+          {authed && (
+            <>
+              <label
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer transition-colors"
+              >
+                <Upload className="h-4 w-4" />
+                Import Excel
+                <input
+                  type="file"
+                  accept=".xlsx,.xls,.csv"
+                  className="hidden"
+                  onChange={handleImportExcel}
+                  disabled={importing}
+                />
+              </label>
+              <Button variant="primary" size="lg" onClick={openAdd}>
+                <Plus className="h-5 w-5" />
+                Tambah Siswa
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 " />
-        <input
-          type="text"
-          placeholder="Cari nama atau NIS..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="h-12 w-full rounded-xl border border-slate-300 bg-white dark:bg-slate-800 pl-12 pr-4 text-sm transition-colors hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-        />
+      {/* Search & Sort */}
+      <div className="flex items-center gap-3">
+        <div className="relative max-w-md flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 " />
+          <input
+            type="text"
+            placeholder="Cari nama atau NIS..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-12 w-full rounded-xl border border-slate-300 bg-white dark:bg-slate-800 pl-12 pr-4 text-sm transition-colors hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          />
+        </div>
+        <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
+          <button
+            onClick={() => setSortOrder("fifo")}
+            className={cn(
+              "px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors",
+              sortOrder === "fifo"
+                ? "bg-white dark:bg-slate-700 text-green-600 shadow-sm"
+                : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+            )}
+            title="FIFO: NIS terkecil duluan"
+          >
+            FIFO
+          </button>
+          <button
+            onClick={() => setSortOrder("lifo")}
+            className={cn(
+              "px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors",
+              sortOrder === "lifo"
+                ? "bg-white dark:bg-slate-700 text-green-600 shadow-sm"
+                : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+            )}
+            title="LIFO: NIS terbesar duluan"
+          >
+            LIFO
+          </button>
+        </div>
       </div>
 
       {/* Table */}
@@ -331,6 +379,7 @@ export default function SiswaPage() {
                   <TableHead>Tanggal Lahir</TableHead>
                   <TableHead>Umur</TableHead>
                   <TableHead>Kelas</TableHead>
+                  <TableHead>Asal Sekolah</TableHead>
                   <TableHead>Aksi</TableHead>
                 </TableRow>
               </TableHeader>
@@ -356,23 +405,26 @@ export default function SiswaPage() {
                     <TableCell>{formatDate(student.birth_date)}</TableCell>
                     <TableCell>{calculateAgeYears(student.birth_date)}</TableCell>
                     <TableCell>{student.class_name}</TableCell>
+                    <TableCell className="text-xs text-slate-500">{student.school_name}</TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => handleEdit(student)}
-                          className="p-2 rounded-lg text-slate-400  hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                          title="Edit"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => setDeleteId(student.id)}
-                          className="p-2 rounded-lg text-slate-400  hover:text-red-600 hover:bg-red-50 transition-colors"
-                          title="Hapus"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
+                      {authed && (
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleEdit(student)}
+                            className="p-2 rounded-lg text-slate-400  hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                            title="Edit"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => setDeleteId(student.id)}
+                            className="p-2 rounded-lg text-slate-400  hover:text-red-600 hover:bg-red-50 transition-colors"
+                            title="Hapus"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -391,7 +443,7 @@ export default function SiswaPage() {
                     : "Tambahkan siswa pertama untuk memulai"}
                 </p>
               </div>
-              {!search && (
+              {!search && authed && (
                 <Button variant="outline" onClick={openAdd}>
                   <Plus className="h-4 w-4" />
                   Tambah Siswa
@@ -416,6 +468,8 @@ export default function SiswaPage() {
               label="NIS *"
               placeholder="Contoh: 2024001"
               value={form.nis}
+              readOnly={!!editId}
+              className={editId ? "bg-slate-100 dark:bg-slate-700 cursor-not-allowed" : ""}
               onChange={(e) => setForm({ ...form, nis: e.target.value })}
               error={formErrors.nis}
             />
@@ -450,14 +504,23 @@ export default function SiswaPage() {
             />
           </div>
 
-          <Select
-            label="Kelas *"
-            options={KELAS_OPTIONS}
-            value={form.class_name}
-            onChange={(e) => setForm({ ...form, class_name: e.target.value })}
-            error={formErrors.class_name}
-            placeholder="Pilih kelas..."
-          />
+          <div className="grid grid-cols-2 gap-4">
+            <Select
+              label="Kelas *"
+              options={KELAS_OPTIONS}
+              value={form.class_name}
+              onChange={(e) => setForm({ ...form, class_name: e.target.value })}
+              error={formErrors.class_name}
+              placeholder="Pilih kelas..."
+            />
+            <Input
+              label="Asal Sekolah *"
+              placeholder="Contoh: SD Negeri 1 Jakarta"
+              value={form.school_name}
+              onChange={(e) => setForm({ ...form, school_name: e.target.value })}
+              error={formErrors.school_name}
+            />
+          </div>
 
           <Input
             label="Nama Orang Tua / Wali"

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { measurements, students } from "@/db/schema";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 
 export async function GET(request: Request) {
   try {
@@ -11,11 +11,14 @@ export async function GET(request: Request) {
     const classFilter = searchParams.get("class");
     const statusFilter = searchParams.get("status");
 
-    let query = db
+    // Get latest measurement per student (1 record per student)
+    const result = await db
       .select({
         id: measurements.id,
+        student_id: measurements.student_id,
         student_name: students.full_name,
         student_class: students.class_name,
+        student_school_name: students.school_name,
         height: measurements.height,
         weight: measurements.weight,
         bmi: measurements.bmi,
@@ -30,12 +33,17 @@ export async function GET(request: Request) {
         END`.as("status_variant"),
         checked_at: measurements.checked_at,
       })
-      .from(measurements)
-      .innerJoin(students, eq(measurements.student_id, students.id))
-      .orderBy(desc(measurements.checked_at))
-      .limit(100);
-
-    const result = await query;
+      .from(students)
+      .innerJoin(measurements, eq(students.id, measurements.student_id))
+      .innerJoin(
+        sql`(
+          SELECT student_id, MAX(checked_at) as max_date
+          FROM measurements
+          GROUP BY student_id
+        ) as latest`,
+        sql`latest.student_id = ${measurements.student_id} AND latest.max_date = ${measurements.checked_at}`
+      )
+      .orderBy(desc(measurements.checked_at));
 
     // Apply filters in memory (case-insensitive substring match)
     let filtered: typeof result = result;

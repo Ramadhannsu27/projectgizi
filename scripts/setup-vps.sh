@@ -2,11 +2,12 @@
 
 # ============================================================
 #  MBG GIZI - Auto Deploy Script untuk VPS Hostinger
+#  TARGET VPS: 202.155.95.123
 # ============================================================
 #  Cara pakai:
-#    1. SSH ke VPS: ssh root@IP-VPS-KAMU
+#    1. SSH ke VPS: ssh root@202.155.95.123
 #    2. Download script ini ke VPS:
-#       curl -fsSL https://raw.githubusercontent.com/.../setup-vps.sh -o setup-vps.sh
+#       curl -fsSL https://raw.githubusercontent.com/Ramadhannsu27/projectgizi/main/scripts/setup-vps.sh -o setup-vps.sh
 #       chmod +x setup-vps.sh
 #       ./setup-vps.sh
 # ============================================================
@@ -65,9 +66,9 @@ fi
 #  STEP 4: Buat directory project
 # ============================================================
 echo -e "${YELLOW}[4/6]${NC} Menyiapkan directory project..."
-PROJECT_DIR="/var/www/mbg-gizi"
-NGINX_CONF="/etc/nginx/sites-available/mbg-gizi"
-NGINX_ENABLED="/etc/nginx/sites-enabled/mbg-gizi"
+PROJECT_DIR="/var/www/projectgizi"
+NGINX_CONF="/etc/nginx/sites-available/projectgizi"
+NGINX_ENABLED="/etc/nginx/sites-enabled/projectgizi"
 
 mkdir -p "$PROJECT_DIR"
 cd "$PROJECT_DIR"
@@ -183,7 +184,7 @@ case $UPLOAD_METHOD in
     ;;
 2)
     echo -e "${YELLOW}  Dari komputer lokal, jalankan command ini:${NC}"
-    echo -e "${GREEN}  scp -r C:/xampp/htdocs/projectgizi/* root@$(curl -s ifconfig.me)://var/www/mbg-gizi/${NC}"
+    echo -e "${GREEN}  scp -r C:/xampp/htdocs/projectgizi/* root@202.155.95.123:/var/www/projectgizi/${NC}"
     echo -e "${YELLOW}  Setelah upload, tekan Enter di sini${NC}"
     echo -ne "${YELLOW}  Tekan Enter untuk melanjutkan: ${NC}"
     read -r _
@@ -243,11 +244,11 @@ echo -e "${GREEN}  .env created${NC}"
 echo -e "${YELLOW}  Menjalankan aplikasi dengan PM2...${NC}"
 
 # Stop existing if any
-pm2 stop mbg-gizi 2>/dev/null || true
-pm2 delete mbg-gizi 2>/dev/null || true
+pm2 stop projectgizi 2>/dev/null || true
+pm2 delete projectgizi 2>/dev/null || true
 
 # Start app
-pm2 start npm --name "mbg-gizi" -- start
+pm2 start npm --name "projectgizi" -- start
 pm2 save
 pm2 startup
 
@@ -258,9 +259,9 @@ echo -e "${GREEN}========================================${NC}"
 echo ""
 echo -e "${BLUE}  URL:${NC}       http://${DOMAIN}"
 echo -e "${BLUE}  Project:${NC}  $PROJECT_DIR"
-echo -e "${BLUE}  Logs:${NC}      pm2 logs mbg-gizi"
+echo -e "${BLUE}  Logs:${NC}      pm2 logs projectgizi"
 echo -e "${BLUE}  Status:${NC}     pm2 status"
-echo -e "${BLUE}  Restart:${NC}    pm2 restart mbg-gizi"
+echo -e "${BLUE}  Restart:${NC}    pm2 restart projectgizi"
 echo ""
 echo -e "${YELLOW}  Langkah selanjutnya:${NC}"
 echo -e "  1. Setup SSL (opsional tapi disarankan):"

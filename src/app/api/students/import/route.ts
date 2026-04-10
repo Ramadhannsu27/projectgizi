@@ -13,10 +13,10 @@ export async function POST(request: Request) {
     }
 
     const buffer = await file.arrayBuffer();
-    const { Workbook } = await import("xlsx");
-    const workbook = Workbook.read(new Uint8Array(buffer), { type: "array" });
+    const XLSX = await import("xlsx");
+    const workbook = XLSX.read(new Uint8Array(buffer), { type: "array" });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const raw: Record<string, unknown>[] = sheet ? require("xlsx").utils.sheet_to_json(sheet) : [];
+    const raw: Record<string, unknown>[] = sheet ? XLSX.utils.sheet_to_json(sheet) : [];
 
     if (raw.length === 0) {
       return NextResponse.json({ error: "File Excel kosong atau tidak memiliki data" }, { status: 400 });
@@ -45,6 +45,7 @@ export async function POST(request: Request) {
         const class_name = String(r.kelas || r.class || r.class_name || "").trim();
         const parent_name = String(r.orang_tua || r.parent_name || r.ayah || r.ibu || r.ortu || "").trim() || null;
         const parent_phone = String(r.no_hp || r.phone || r.telp || r.parent_phone || r.hp || "").trim() || null;
+        const school_name = String(r.sekolah || r.school || r.school_name || "SD / MI / SMP / SMA Negeri").trim();
 
         if (!nis || !full_name || !birth_date) return null;
 
@@ -57,7 +58,7 @@ export async function POST(request: Request) {
           cls = `Kelas ${cls}`;
         }
 
-        return { nis, full_name, gender: g, birth_date, class_name: cls, parent_name, parent_phone };
+        return { nis, full_name, gender: g, birth_date, class_name: cls, school_name, parent_name, parent_phone };
       })
       .filter(Boolean) as Array<{
         nis: string;
@@ -65,6 +66,7 @@ export async function POST(request: Request) {
         gender: "L" | "P";
         birth_date: unknown;
         class_name: string | null;
+        school_name: string;
         parent_name: string | null;
         parent_phone: string | null;
       }>;
@@ -94,8 +96,8 @@ export async function POST(request: Request) {
     for (const s of studentsToInsert) {
       try {
         const [result] = await connection.execute(
-          `INSERT INTO students (nis, full_name, gender, birth_date, class_name, parent_name, parent_phone) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          [s.nis, s.full_name, s.gender, s.birth_date, s.class_name || null, s.parent_name || null, s.parent_phone || null]
+          `INSERT INTO students (nis, full_name, gender, birth_date, class_name, school_name, parent_name, parent_phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [s.nis, s.full_name, s.gender, String(s.birth_date), s.class_name || null, s.school_name, s.parent_name || null, s.parent_phone || null]
         );
         const res = result as unknown as { affectedRows: number };
         if (res.affectedRows > 0) inserted++;

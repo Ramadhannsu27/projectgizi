@@ -2,10 +2,11 @@
 
 # ============================================================
 #  MBG GIZI - Upload Script dari Lokal ke VPS
+#  TARGET VPS: 202.155.95.123
 # ============================================================
 #  Cara pakai:
 #    1. Jalankan script ini di komputer lokal (Windows PowerShell / Git Bash)
-#    2. Masukkan IP VPS dan passwordroot kamu
+#    2. Masukkan password root VPS kamu saat diminta
 # ============================================================
 
 set -e
@@ -19,19 +20,14 @@ NC='\033[0m'
 
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}  MBG GIZI - Upload ke VPS${NC}"
+echo -e "${BLUE}  IP VPS: 202.155.95.123${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo ""
 
 # ============================================================
-#  Tanya IP VPS
+#  IP VPS (sudah diset ke 202.155.95.123)
 # ============================================================
-echo -ne "${YELLOW}  Masukkan IP VPS kamu: ${NC}"
-read -r VPS_IP
-
-if [ -z "$VPS_IP" ]; then
-    echo -e "${RED}  ERROR: IP VPS harus diisi${NC}"
-    exit 1
-fi
+VPS_IP="202.155.95.123"
 
 # ============================================================
 #  Tanya nama folder project
@@ -52,8 +48,8 @@ echo -e "${YELLOW}  Mengupload project ke VPS...${NC}"
 echo -e "${YELLOW}  (Masukkan password root VPS kamu saat diminta)${NC}"
 echo ""
 
-# Upload semua file
-scp -r "$PROJECT_DIR"/* root@"$VPS_IP":/var/www/mbg-gizi/
+# Upload semua file ke /var/www/projectgizi/
+scp -r "$PROJECT_DIR"/* root@"$VPS_IP":/var/www/projectgizi/
 
 echo ""
 echo -e "${GREEN}  Upload selesai!${NC}"

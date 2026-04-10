@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
-import { ThemeProvider } from "@/components/theme-provider";
-import SWRegistration from "@/components/sw-registration";
+import { ThemeProvider } from "@/components/features/theme-provider";
+import SWRegistration from "@/components/features/sw-registration";
 
 const nunito = Nunito({
   subsets: ["latin"],

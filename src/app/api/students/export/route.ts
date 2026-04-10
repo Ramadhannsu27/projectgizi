@@ -29,13 +29,14 @@ export async function GET(request: Request) {
 
     if (format === "csv") {
       // Generate CSV
-      const headers = ["NIS", "Nama", "Jenis Kelamin", "Tanggal Lahir", "Kelas", "Nama Orang Tua", "No HP", "Dibuat"];
+      const headers = ["NIS", "Nama", "Jenis Kelamin", "Tanggal Lahir", "Kelas", "Asal Sekolah", "Nama Orang Tua", "No HP", "Dibuat"];
       const rows = filtered.map((s) => [
         s.nis,
         s.full_name,
         s.gender === "L" ? "Laki-laki" : "Perempuan",
         s.birth_date ? new Date(s.birth_date).toISOString().split("T")[0] : "",
         s.class_name || "",
+        s.school_name || "SD / MI / SMP / SMA Negeri",
         s.parent_name || "",
         s.parent_phone || "",
         s.created_at ? new Date(s.created_at).toISOString().split("T")[0] : "",
@@ -62,7 +63,7 @@ export async function GET(request: Request) {
     }
 
     // Generate XLSX
-    const { Workbook } = await import("xlsx");
+    const XLSX = await import("xlsx");
 
     const headers = [
       "NIS",
@@ -70,6 +71,7 @@ export async function GET(request: Request) {
       "Jenis Kelamin",
       "Tanggal Lahir",
       "Kelas",
+      "Asal Sekolah",
       "Nama Orang Tua",
       "No HP Orang Tua",
       "Tanggal Dibuat",
@@ -81,12 +83,13 @@ export async function GET(request: Request) {
       s.gender === "L" ? "Laki-laki" : "Perempuan",
       s.birth_date ? new Date(s.birth_date) : null,
       s.class_name || "",
+      s.school_name || "SD / MI / SMP / SMA Negeri",
       s.parent_name || "",
       s.parent_phone || "",
       s.created_at ? new Date(s.created_at) : null,
     ]);
 
-    const ws = (await import("xlsx")).utils.aoa_to_sheet([headers, ...rows]);
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
 
     // Set column widths
     ws["!cols"] = [
@@ -95,13 +98,14 @@ export async function GET(request: Request) {
       { wch: 14 }, // JK
       { wch: 14 }, // Tanggal Lahir
       { wch: 10 }, // Kelas
+      { wch: 25 }, // Asal Sekolah
       { wch: 20 }, // Orang Tua
       { wch: 15 }, // HP
       { wch: 14 }, // Dibuat
     ];
 
-    const wb = (await import("xlsx")).utils.book_new();
-    (await import("xlsx")).utils.book_append_sheet(wb, ws, "Data Siswa");
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Data Siswa");
 
     // Add summary sheet
     const genderCount = filtered.filter((s) => s.gender === "L").length;
@@ -125,11 +129,11 @@ export async function GET(request: Request) {
       ["Dicetak", new Date().toLocaleString("id-ID")],
     ];
 
-    const wsSummary = (await import("xlsx")).utils.aoa_to_sheet(summaryData);
+    const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
     wsSummary["!cols"] = [{ wch: 25 }, { wch: 15 }];
-    (await import("xlsx")).utils.book_append_sheet(wb, wsSummary, "Ringkasan");
+    XLSX.utils.book_append_sheet(wb, wsSummary, "Ringkasan");
 
-    const buffer = (await import("xlsx")).write(wb, {
+    const buffer = XLSX.write(wb, {
       type: "buffer",
       bookType: "xlsx",
     });

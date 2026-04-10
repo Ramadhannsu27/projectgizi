@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { measurements } from "@/db/schema";
+import { sql } from "drizzle-orm";
 
 export async function POST(request: Request) {
   try {
@@ -40,6 +41,7 @@ export async function POST(request: Request) {
             status_category: item.status_category || "Normal",
             notes: item.notes || null,
             is_synced: true,
+            checked_at: item.saved_at ? new Date(item.saved_at) : new Date(),
           });
 
         const insertId = (result as unknown as { insertId: number }).insertId;

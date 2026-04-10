@@ -2,14 +2,15 @@
 
 # ============================================================
 #  MBG GIZI - Setup Lengkap Sekali Klik
+#  TARGET VPS: 202.155.95.123
 # ============================================================
 #  Jalankan di VPS Hostinger BARU (Ubuntu):
 #
 #    1. SSH ke VPS:
-#       ssh root@IP-VPS-KAMU
+#       ssh root@202.155.95.123
 #
 #    2. Download script ini:
-#       curl -fsSL https://raw.githubusercontent.com/YOUR-USERNAME/YOUR-REPO/main/scripts/one-click.sh -o one-click.sh
+#       curl -fsSL https://raw.githubusercontent.com/Ramadhannsu27/projectgizi/main/scripts/one-click.sh -o one-click.sh
 #       chmod +x one-click.sh
 #
 #    3. Jalankan:
@@ -81,8 +82,8 @@ if [ -z "$DB_USER" ]; then
     echo ""
 fi
 
-PROJECT_DIR="/var/www/mbg-gizi"
-NGINX_CONF="/etc/nginx/sites-available/mbg-gizi"
+PROJECT_DIR="/var/www/projectgizi"
+NGINX_CONF="/etc/nginx/sites-available/projectgizi"
 
 echo ""
 echo -e "${YELLOW}  Memulai setup...${NC}"
@@ -147,7 +148,7 @@ server {
     }
 }
 EOF
-ln -sf "$NGINX_CONF" /etc/nginx/sites-enabled/mbg-gizi
+ln -sf "$NGINX_CONF" /etc/nginx/sites-enabled/projectgizi
 rm -f /etc/nginx/sites-enabled/default
 nginx -t > /dev/null 2>&1 && systemctl reload nginx
 echo -e "  ${GREEN}OK${NC} Nginx configured for $DOMAIN"
@@ -174,16 +175,16 @@ echo -e "  ${GREEN}OK${NC} Dependencies installed & built"
 #  STEP 7: PM2 Start
 # ============================================================
 echo -e "${YELLOW}  [7/7] Start app with PM2...${NC}"
-pm2 stop mbg-gizi 2>/dev/null || true
-pm2 delete mbg-gizi 2>/dev/null || true
+pm2 stop projectgizi 2>/dev/null || true
+pm2 delete projectgizi 2>/dev/null || true
 cd "$PROJECT_DIR"
-pm2 start npm --name "mbg-gizi" -- start
+pm2 start npm --name "projectgizi" -- start
 pm2 save
 pm2 startup > /dev/null 2>&1
 sleep 2
 
 # Status check
-APP_STATUS=$(pm2 show mbg-gizi 2>/dev/null | grep "status" | awk '{print $4}')
+APP_STATUS=$(pm2 show projectgizi 2>/dev/null | grep "status" | awk '{print $4}')
 echo -e "  ${GREEN}OK${NC} PM2 Status: $APP_STATUS"
 
 # ============================================================
@@ -198,9 +199,9 @@ echo -e "${BLUE}  🌐 URL:${NC}       http://${DOMAIN}"
 echo -e "${BLUE}  📂 Project:${NC}  $PROJECT_DIR"
 echo ""
 echo -e "${YELLOW}  Command berguna:${NC}"
-echo -e "  ${CYAN}pm2 logs mbg-gizi${NC}     → Lihat log aplikasi"
+echo -e "  ${CYAN}pm2 logs projectgizi${NC}     → Lihat log aplikasi"
 echo -e "  ${CYAN}pm2 status${NC}            → Cek status app"
-echo -e "  ${CYAN}pm2 restart mbg-gizi${NC}   → Restart app"
+echo -e "  ${CYAN}pm2 restart projectgizi${NC}   → Restart app"
 echo -e "  ${CYAN}pm2 monit${NC}             → Monitor real-time"
 echo ""
 echo -e "${YELLOW}  Langkah selanjutnya:${NC}"

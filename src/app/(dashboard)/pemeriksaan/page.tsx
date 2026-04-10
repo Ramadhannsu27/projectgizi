@@ -16,6 +16,8 @@ import {
   Plus,
   Loader2,
   Stethoscope,
+  Undo2,
+  Redo2,
 } from "lucide-react";
 import QRCode from "react-qr-code";
 import { Button } from "@/components/ui/button";
@@ -26,7 +28,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { cn, calculateAgeYears, formatDate } from "@/lib/utils";
+import { cn, calculateAgeYears, formatDate, isAuthenticated } from "@/lib/utils";
 
 interface Student {
   id: number;
@@ -77,9 +79,96 @@ export default function PemeriksaanPage() {
     gender: "L",
     birth_date: "",
     class_name: "",
+    school_name: "SD / MI / SMP / SMA Negeri",
   });
   const [addingStudent, setAddingStudent] = useState(false);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
+  const [authed, setAuthed] = useState(false);
+
+  useEffect(() => {
+    setAuthed(isAuthenticated());
+  }, []);
+
+  // === UNDO / REDO SYSTEM ===
+  // Simpan snapshot state setiap kali ada perubahan data penting
+  type FormState = {
+    student: Student | null;
+    height: string;
+    weight: string;
+    notes: string;
+  };
+  const [history, setHistory] = useState<FormState[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+
+  const currentSnapshot = (): FormState => ({
+    student: selectedStudent,
+    height,
+    weight,
+    notes,
+  });
+
+  // Push state saat input berubah (kecuali saat undo/redo)
+  const pushState = (snapshot: FormState) => {
+    setHistory((prev) => {
+      // Slice off redo stack di atas current index
+      const truncated = prev.slice(0, historyIndex + 1);
+      return [...truncated, snapshot];
+    });
+    setHistoryIndex((prev) => prev + 1);
+  };
+
+  const canUndo = historyIndex > 0;
+  const canRedo = historyIndex < history.length - 1;
+
+  const handleUndo = () => {
+    if (!canUndo) return;
+    const newIndex = historyIndex - 1;
+    const snapshot = history[newIndex];
+    setHistoryIndex(newIndex);
+    setSelectedStudent(snapshot.student);
+    setHeight(snapshot.height);
+    setWeight(snapshot.weight);
+    setNotes(snapshot.notes);
+    toast.info("Undo berhasil");
+  };
+
+  const handleRedo = () => {
+    if (!canRedo) return;
+    const newIndex = historyIndex + 1;
+    const snapshot = history[newIndex];
+    setHistoryIndex(newIndex);
+    setSelectedStudent(snapshot.student);
+    setHeight(snapshot.height);
+    setWeight(snapshot.weight);
+    setNotes(snapshot.notes);
+    toast.info("Redo berhasil");
+  };
+
+  // Keyboard shortcut: Ctrl+Z = undo, Ctrl+Y / Ctrl+Shift+Z = redo
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      }
+      if ((e.ctrlKey || e.metaKey) && (e.key === "y" || (e.key === "z" && e.shiftKey))) {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [history, historyIndex]);
+
+  // Auto-push snapshot saat form fields berubah
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      pushState(currentSnapshot());
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [selectedStudent, height, weight, notes]);
+  // ==================================
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -120,7 +209,7 @@ export default function PemeriksaanPage() {
   }, [searchQuery, students]);
 
   const handleAddStudent = async () => {
-    if (!newStudent.nis || !newStudent.full_name || !newStudent.birth_date || !newStudent.class_name) {
+    if (!newStudent.nis || !newStudent.full_name || !newStudent.birth_date || !newStudent.class_name || !newStudent.school_name) {
       toast.error("Lengkapi semua field wajib");
       return;
     }
@@ -132,7 +221,10 @@ export default function PemeriksaanPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
         },
-        body: JSON.stringify(newStudent),
+        body: JSON.stringify({
+          ...newStudent,
+          school_name: newStudent.school_name || "SD / MI / SMP / SMA Negeri",
+        }),
       });
       if (res.ok) {
         const created = await res.json();
@@ -140,7 +232,7 @@ export default function PemeriksaanPage() {
         setFilteredStudents([...students, created]);
         setSelectedStudent(created);
         setAddModalOpen(false);
-        setNewStudent({ nis: "", full_name: "", gender: "L", birth_date: "", class_name: "" });
+        setNewStudent({ nis: "", full_name: "", gender: "L", birth_date: "", class_name: "", school_name: "SD / MI / SMP / SMA Negeri" });
         toast.success(`Siswa "${created.full_name}" ditambahkan`);
         setStep(2);
       } else {
@@ -377,6 +469,52 @@ export default function PemeriksaanPage() {
       {step === 1 && (
         <Card>
           <CardContent className="p-6 space-y-4">
+            {/* Undo / Redo */}
+            <div className="flex items-center justify-end gap-1 -mt-1">
+              <button
+                onClick={handleUndo}
+                disabled={!canUndo}
+                title="Undo (Ctrl+Z)"
+                className={cn(
+                  "p-2 rounded-lg transition-colors",
+                  canUndo
+                    ? "text-slate-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/30"
+                    : "text-slate-300 dark:text-slate-600 cursor-not-allowed"
+                )}
+              >
+                <Undo2 className="h-4 w-4" />
+              </button>
+              <button
+                onClick={handleRedo}
+                disabled={!canRedo}
+                title="Redo (Ctrl+Y)"
+                className={cn(
+                  "p-2 rounded-lg transition-colors",
+                  canRedo
+                    ? "text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                    : "text-slate-300 dark:text-slate-600 cursor-not-allowed"
+                )}
+              >
+                <Redo2 className="h-4 w-4" />
+              </button>
+            </div>
+
+            {!authed && (
+              <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700">
+                <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center text-amber-600 dark:text-amber-400 flex-shrink-0">
+                  <UserCheck className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                    Fitur ini hanya untuk Petugas UKS
+                  </p>
+                  <p className="text-xs text-amber-600 dark:text-amber-300 mt-0.5">
+                    Login terlebih dahulu untuk dapat melakukan pemeriksaan gizi siswa.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div>
               <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
                 <UserCheck className="h-5 w-5 text-green-600" />
@@ -415,14 +553,14 @@ export default function PemeriksaanPage() {
                       "w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all",
                       selectedStudent?.id === student.id
                         ? "border-green-400 bg-green-50 dark:bg-green-900/20 dark:ring-green-700"
-                        : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                        : "border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700"
                     )}
                   >
                     <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-green-700 dark:text-green-400 font-bold text-sm">
                       {student.full_name.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-slate-800 text-sm truncate">
+                      <p className="font-semibold text-slate-800 dark:text-white text-sm truncate">
                         {student.full_name}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -443,13 +581,15 @@ export default function PemeriksaanPage() {
             )}
 
             <div className="flex items-center justify-between pt-2">
-              <button
-                onClick={() => setAddModalOpen(true)}
-                className="flex items-center gap-2 text-sm font-semibold text-green-600 hover:text-green-700"
-              >
-                <Plus className="h-4 w-4" />
-                Siswa Baru
-              </button>
+              {authed && (
+                <button
+                  onClick={() => setAddModalOpen(true)}
+                  className="flex items-center gap-2 text-sm font-semibold text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300"
+                >
+                  <Plus className="h-4 w-4" />
+                  Siswa Baru
+                </button>
+              )}
               <Button
                 variant="primary"
                 size="lg"
@@ -470,8 +610,8 @@ export default function PemeriksaanPage() {
           <CardContent className="p-6 space-y-6">
             {/* Selected student info */}
             {selectedStudent && (
-              <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200">
-                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold">
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600">
+                <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center text-green-700 dark:text-green-300 font-bold">
                   {selectedStudent.full_name.charAt(0)}
                 </div>
                 <div>
@@ -504,52 +644,121 @@ export default function PemeriksaanPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-white">
-                  Tinggi Badan
-                </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    step="0.1"
-                    min="50"
-                    max="250"
-                    placeholder="0.0"
-                    value={height}
-                    onChange={(e) => setHeight(e.target.value)}
-                    className="h-20 w-full rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 pl-5 pr-14 text-2xl font-bold text-slate-800 dark:text-white focus:outline-none focus:border-green-500 transition-colors"
-                    autoFocus
-                  />
-                  <span className="absolute right-5 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400 dark:text-slate-300">
-                    cm
-                  </span>
-                </div>
-                <p className="text-xs text-slate-400 dark:text-slate-300">Rentang: 50 - 250 cm</p>
+              {/* Undo / Redo Buttons */}
+              <div className="col-span-2 flex items-center justify-end gap-1 -mb-2">
+                <button
+                  onClick={handleUndo}
+                  disabled={!canUndo}
+                  title="Undo (Ctrl+Z)"
+                  className={cn(
+                    "p-2 rounded-lg transition-colors",
+                    canUndo
+                      ? "text-slate-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/30"
+                      : "text-slate-300 dark:text-slate-600 cursor-not-allowed"
+                  )}
+                >
+                  <Undo2 className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={handleRedo}
+                  disabled={!canRedo}
+                  title="Redo (Ctrl+Y)"
+                  className={cn(
+                    "p-2 rounded-lg transition-colors",
+                    canRedo
+                      ? "text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                      : "text-slate-300 dark:text-slate-600 cursor-not-allowed"
+                  )}
+                >
+                  <Redo2 className="h-4 w-4" />
+                </button>
               </div>
 
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-white">
-                  Berat Badan
-                </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    step="0.1"
-                    min="3"
-                    max="200"
-                    placeholder="0.0"
-                    value={weight}
-                    onChange={(e) => setWeight(e.target.value)}
-                    className="h-20 w-full rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 pl-5 pr-14 text-2xl font-bold text-slate-800 dark:text-white focus:outline-none focus:border-green-500 transition-colors"
-                  />
-                  <span className="absolute right-5 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400 dark:text-slate-300">
-                    kg
-                  </span>
-                </div>
-                <p className="text-xs text-slate-400 dark:text-slate-300">Rentang: 3 - 200 kg</p>
-              </div>
+              {authed ? (
+                <>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-white">
+                      Tinggi Badan
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        step="0.1"
+                        min="50"
+                        max="250"
+                        placeholder="0.0"
+                        value={height}
+                        onChange={(e) => setHeight(e.target.value)}
+                        className="h-20 w-full rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 pl-5 pr-14 text-2xl font-bold text-slate-800 dark:text-white focus:outline-none focus:border-green-500 transition-colors"
+                        autoFocus
+                      />
+                      <span className="absolute right-5 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400 dark:text-slate-300">
+                        cm
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 dark:text-slate-300">Rentang: 50 - 250 cm</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-white">
+                      Berat Badan
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        step="0.1"
+                        min="3"
+                        max="200"
+                        placeholder="0.0"
+                        value={weight}
+                        onChange={(e) => setWeight(e.target.value)}
+                        className="h-20 w-full rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 pl-5 pr-14 text-2xl font-bold text-slate-800 dark:text-white focus:outline-none focus:border-green-500 transition-colors"
+                      />
+                      <span className="absolute right-5 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400 dark:text-slate-300">
+                        kg
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 dark:text-slate-300">Rentang: 3 - 200 kg</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="space-y-2 opacity-50">
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-white">
+                      Tinggi Badan
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        placeholder="Login untuk input"
+                        disabled
+                        className="h-20 w-full rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 pl-5 pr-14 text-2xl font-bold text-slate-400 cursor-not-allowed"
+                      />
+                      <span className="absolute right-5 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400 dark:text-slate-300">
+                        cm
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-2 opacity-50">
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-white">
+                      Berat Badan
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        placeholder="Login untuk input"
+                        disabled
+                        className="h-20 w-full rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 pl-5 pr-14 text-2xl font-bold text-slate-400 cursor-not-allowed"
+                      />
+                      <span className="absolute right-5 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400 dark:text-slate-300">
+                        kg
+                      </span>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Loading overlay */}
@@ -563,7 +772,7 @@ export default function PemeriksaanPage() {
                   <p className="text-lg font-bold text-slate-700 dark:text-white">
                     Menghitung...
                   </p>
-                  <p className="text-sm text-slate-400 ">
+                  <p className="text-sm text-slate-400 dark:text-slate-400">
                     Menganalisis data dengan standar WHO 2007
                   </p>
                 </div>
@@ -604,8 +813,8 @@ export default function PemeriksaanPage() {
             <CardContent className="p-6">
               {/* Student info */}
               {selectedStudent && (
-                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
-                  <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold text-lg">
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100 dark:border-slate-700">
+                  <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center text-green-700 dark:text-green-300 font-bold text-lg">
                     {selectedStudent.full_name.charAt(0)}
                   </div>
                   <div>
@@ -617,7 +826,7 @@ export default function PemeriksaanPage() {
                       {selectedStudent.gender === "L" ? "Laki-laki" : "Perempuan"}
                     </p>
                   </div>
-                  <span className="ml-auto text-xs text-slate-400 ">
+                  <span className="ml-auto text-xs text-slate-400 dark:text-slate-400">
                     {formatDate(new Date().toISOString())}
                   </span>
                 </div>
@@ -628,26 +837,31 @@ export default function PemeriksaanPage() {
                 <div
                   className={cn(
                     "inline-flex flex-col items-center p-8 rounded-2xl border-2 w-full max-w-sm mx-auto mb-6",
-                    result.bgColor
+                    result.statusVariant === "normal" && "bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-700",
+                    result.statusVariant === "obesitas" && "bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-700",
+                    result.statusVariant === "overweight" && "bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-700",
+                    result.statusVariant === "stunting" && "bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-700",
+                    result.statusVariant === "severely_stunting" && "bg-orange-100 dark:bg-orange-900/40 border-orange-300 dark:border-orange-700",
+                    result.statusVariant === "secondary" && "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-600"
                   )}
                 >
                   <p className="text-sm font-semibold text-slate-500 dark:text-slate-300 mb-1">
                     IMT (BMI)
                   </p>
                   <p className="text-5xl font-extrabold mb-1">{result.bmi.toFixed(1)}</p>
-                  <p className="text-sm text-slate-400 ">
+                  <p className="text-sm text-slate-400 dark:text-slate-400">
                     Z-Score: {result.zScore > 0 ? "+" : ""}{result.zScore.toFixed(2)}
                   </p>
                   <div className="mt-4">
                     <span
                       className={cn(
                         "inline-flex items-center rounded-full border px-4 py-1.5 text-base font-bold uppercase tracking-wider",
-                        result.statusVariant === "normal" && "bg-green-100 text-green-800 border-green-200",
-                        result.statusVariant === "obesitas" && "bg-red-100 text-red-800 border-red-200",
-                        result.statusVariant === "overweight" && "bg-amber-100 text-amber-800 border-amber-200",
-                        result.statusVariant === "stunting" && "bg-orange-100 text-orange-800 border-orange-200",
-                        result.statusVariant === "severely_stunting" && "bg-orange-200 text-orange-900 border-orange-300",
-                        result.statusVariant === "secondary" && "bg-slate-100 text-slate-700 dark:text-white border-slate-200"
+                        result.statusVariant === "normal" && "bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200 border-green-200 dark:border-green-700",
+                        result.statusVariant === "obesitas" && "bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200 border-red-200 dark:border-red-700",
+                        result.statusVariant === "overweight" && "bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 border-amber-200 dark:border-amber-700",
+                        result.statusVariant === "stunting" && "bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-200 border-orange-200 dark:border-orange-700",
+                        result.statusVariant === "severely_stunting" && "bg-orange-200 dark:bg-orange-900/60 text-orange-900 dark:text-orange-100 border-orange-300 dark:border-orange-600",
+                        result.statusVariant === "secondary" && "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-white border-slate-200 dark:border-slate-600"
                       )}
                     >
                       {result.status}
@@ -656,7 +870,7 @@ export default function PemeriksaanPage() {
                 </div>
 
                 {/* Recommendation */}
-                <div className="bg-slate-50 rounded-xl p-4 text-left mb-6">
+                <div className="bg-slate-100 dark:bg-slate-800 rounded-xl p-4 text-left mb-6">
                   <p className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-1">
                     Saran & Rekomendasi
                   </p>
@@ -678,36 +892,46 @@ export default function PemeriksaanPage() {
                 )}
 
                 {/* Notes */}
-                <div className="mb-6">
-                  <Textarea
-                    label="Catatan (opsional)"
-                    placeholder="Tambahkan catatan jika diperlukan..."
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                  />
-                </div>
+                {authed && (
+                  <div className="mb-6">
+                    <Textarea
+                      label="Catatan (opsional)"
+                      placeholder="Tambahkan catatan jika diperlukan..."
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                    />
+                  </div>
+                )}
 
                 {/* Actions */}
                 <div className="flex flex-col sm:flex-row items-center gap-3">
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    onClick={handleSave}
-                    loading={saving}
-                    className="flex-1"
-                  >
-                    <Save className="h-5 w-5" />
-                    Simpan Data
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={handleDownloadPDF}
-                    className="flex-1"
-                  >
-                    <Download className="h-5 w-5" />
-                    Download PDF
-                  </Button>
+                  {authed ? (
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      onClick={handleSave}
+                      loading={saving}
+                      className="flex-1"
+                    >
+                      <Save className="h-5 w-5" />
+                      Simpan Data
+                    </Button>
+                  ) : (
+                    <div className="flex-1 text-center py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-500 dark:text-slate-400">
+                      Login untuk menyimpan data
+                    </div>
+                  )}
+                  {measurementId && measurementId > 0 && (
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={handleDownloadPDF}
+                      className="flex-1"
+                    >
+                      <Download className="h-5 w-5" />
+                      Download PDF
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -725,6 +949,8 @@ export default function PemeriksaanPage() {
                 setResult(null);
                 setMeasurementId(null);
                 setNotes("");
+                setHistory([]);
+                setHistoryIndex(-1);
               }}
             >
               <Plus className="h-5 w-5" />
@@ -771,8 +997,8 @@ export default function PemeriksaanPage() {
                     className={cn(
                       "flex-1 h-11 rounded-xl border-2 text-sm font-semibold transition-all",
                       newStudent.gender === g
-                        ? "border-green-500 bg-green-50 text-green-700"
-                        : "border-slate-300 text-slate-500 dark:text-slate-300 hover:border-slate-400"
+                        ? "border-green-500 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+                        : "border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-500"
                     )}
                   >
                     {g === "L" ? "Laki-laki" : "Perempuan"}
@@ -789,8 +1015,8 @@ export default function PemeriksaanPage() {
           </div>
           <div className="space-y-1.5">
             <label className="block text-sm font-semibold text-slate-700 dark:text-white">Kelas *</label>
-            <div className="grid grid-cols-3 gap-2">
-              {["I","II","III","IV","V","VI"].map((k) => (
+            <div className="grid grid-cols-4 gap-2">
+              {["I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"].map((k) => (
                 <button
                   key={k}
                   type="button"
@@ -798,8 +1024,8 @@ export default function PemeriksaanPage() {
                   className={cn(
                     "h-10 rounded-xl border-2 text-sm font-semibold transition-all",
                     newStudent.class_name === `Kelas ${k}`
-                      ? "border-green-500 bg-green-50 text-green-700"
-                      : "border-slate-300 text-slate-500 dark:text-slate-300 hover:border-slate-400"
+                      ? "border-green-500 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+                      : "border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-500"
                   )}
                 >
                   {k}
@@ -807,6 +1033,13 @@ export default function PemeriksaanPage() {
               ))}
             </div>
           </div>
+
+          <Input
+            label="Asal Sekolah *"
+            placeholder="Contoh: SD Negeri 1 Jakarta"
+            value={newStudent.school_name}
+            onChange={(e) => setNewStudent({ ...newStudent, school_name: e.target.value })}
+          />
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setAddModalOpen(false)}>Batal</Button>

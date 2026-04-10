@@ -25,6 +25,7 @@ export const students = mysqlTable("students", {
   gender: varchar("gender", { length: 1 }).notNull(), // 'L' or 'P'
   birth_date: date("birth_date").notNull(),
   class_name: varchar("class_name", { length: 50 }).notNull(),
+  school_name: varchar("school_name", { length: 255 }).notNull().default("SD / MI / SMP / SMA Negeri"),
   parent_name: varchar("parent_name", { length: 255 }),
   parent_phone: varchar("parent_phone", { length: 20 }),
   created_at: datetime("created_at").default(sql`(NOW())`),

@@ -1,6 +1,6 @@
-// Service Worker for Project Gizi - Offline Support
+// Service Worker for Monitoring Gizi - Offline Support
 
-const CACHE_NAME = "projectgizi-v1";
+const CACHE_NAME = "monitoringgizi-v1";
 const OFFLINE_URL = "/offline";
 
 const STATIC_ASSETS = [

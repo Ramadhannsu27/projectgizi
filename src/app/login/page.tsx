@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, AlertCircle, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -71,7 +71,7 @@ export default function LoginPage() {
             MBG
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Pemantauan Status Gizi Siswa — UKS Sekolah
+            Pemantauan Status Gizi Siswa — SD / MI / SMP / SMA Negeri
           </p>
         </div>
 
@@ -134,6 +134,21 @@ export default function LoginPage() {
               >
                 Masuk
               </Button>
+
+              <div className="relative flex items-center gap-3 my-2">
+                <div className="flex-1 h-px bg-slate-200 dark:bg-slate-600" />
+                <span className="text-xs text-slate-400 dark:text-slate-500">atau</span>
+                <div className="flex-1 h-px bg-slate-200 dark:bg-slate-600" />
+              </div>
+
+              <button
+                type="button"
+                onClick={() => router.push("/dashboard")}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 hover:border-slate-300 dark:hover:border-slate-500 transition-all"
+              >
+                <Users className="h-4 w-4" />
+                Masuk sebagai Pengunjung
+              </button>
             </form>
           </div>
 

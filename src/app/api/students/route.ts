@@ -9,6 +9,7 @@ export async function GET(request: Request) {
     const db = getDb();
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");
+    const sort = searchParams.get("sort") || "fifo"; // default FIFO
 
     let result;
     if (search) {
@@ -25,6 +26,13 @@ export async function GET(request: Request) {
     } else {
       result = await db.select().from(students).limit(100);
     }
+
+    // FIFO: NIS ascending (terkecil dulu), LIFO: NIS descending (terbesar dulu)
+    result = [...result].sort((a, b) =>
+      sort === "lifo"
+        ? String(b.nis).localeCompare(String(a.nis))
+        : String(a.nis).localeCompare(String(b.nis))
+    );
 
     return NextResponse.json(result);
   } catch (error) {
@@ -46,13 +54,14 @@ export async function POST(request: Request) {
 
     try {
       const [result] = await connection.execute(
-        `INSERT INTO students (nis, full_name, gender, birth_date, class_name, parent_name, parent_phone) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO students (nis, full_name, gender, birth_date, class_name, school_name, parent_name, parent_phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           body.nis,
           body.full_name,
           body.gender,
           body.birth_date,
           body.class_name,
+          body.school_name || "SD / MI / SMP / SMA Negeri",
           body.parent_name || null,
           body.parent_phone || null,
         ]
@@ -85,7 +94,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(
-      { error: "Gagal menyimpan data siswa" },
+      { error: `Gagal menyimpan data siswa: ${err.code} - ${err.message}` },
       { status: 500 }
     );
   }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { calculateNutritionStatus } from "@/lib/who2007";
+import { calculateNutritionStatus } from "@/lib/calculations/who2007";
 import { getDb } from "@/db";
 import { students } from "@/db/schema";
 import { eq } from "drizzle-orm";
