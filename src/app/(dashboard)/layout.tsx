@@ -3,7 +3,7 @@
 import { Sidebar } from "@/components/features/sidebar";
 import { TopBar } from "@/components/features/topbar";
 import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 
 export default function DashboardLayout({
   children,
@@ -61,14 +61,8 @@ export default function DashboardLayout({
           ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
-        <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+        <div className="flex items-center gap-3 p-4 border-b border-slate-200 dark:border-slate-700">
           <img src="/logo-mbg.webp" alt="MBG" className="h-8 w-auto" />
-          <button
-            onClick={() => setMobileOpen(false)}
-            className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
-          >
-            <X className="h-5 w-5 text-slate-500" />
-          </button>
         </div>
         <Sidebar />
       </div>
