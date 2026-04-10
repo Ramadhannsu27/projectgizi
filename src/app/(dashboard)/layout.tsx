@@ -54,14 +54,14 @@ export default function DashboardLayout({
         />
       )}
 
-      {/* Mobile sidebar drawer — no header */}
+      {/* Mobile sidebar drawer — no header, full height */}
       <div
         className={`
-          lg:hidden fixed top-0 left-0 bottom-0 z-50 bg-white dark:bg-slate-900 shadow-2xl transition-transform duration-300 w-[260px]
+          lg:hidden fixed top-0 left-0 bottom-0 z-50 bg-slate-900 shadow-2xl transition-transform duration-300 w-[260px]
           ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
-        <Sidebar hideHeader />
+        <Sidebar hideHeader noFixed />
       </div>
 
       {/* Desktop sidebar — hide on touch devices */}

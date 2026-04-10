@@ -26,7 +26,7 @@ const navItems = [
   { href: "/laporan", label: "Laporan", icon: FileText },
 ];
 
-export function Sidebar({ hideHeader = false }: { hideHeader?: boolean }) {
+export function Sidebar({ hideHeader = false, noFixed = false }: { hideHeader?: boolean; noFixed?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
@@ -78,7 +78,8 @@ export function Sidebar({ hideHeader = false }: { hideHeader?: boolean }) {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 h-screen z-40 flex flex-col border-r transition-all duration-300 overflow-hidden",
+        "flex flex-col border-r transition-all duration-300 overflow-hidden",
+        noFixed ? "relative h-full" : "fixed left-0 top-0 h-screen z-40",
         collapsed ? "w-[72px]" : "w-[260px]",
         "bg-slate-900 border-slate-700 dark:bg-slate-900 dark:border-slate-700"
       )}
