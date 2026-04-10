@@ -54,12 +54,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 p-3 sm:p-4">
       {/* Desktop mode hint for mobile */}
       <div className="fixed top-0 left-0 right-0 z-50 lg:hidden">
-        <div className="bg-blue-600 text-white px-4 py-2 text-center">
-          <p className="text-xs font-medium">
-            💻 Tampilan optimal di Desktop Mode — aktifkan via menu browser (⋮ → Desktop site)
+        <div className="bg-blue-600 text-white px-3 py-2 text-center">
+          <p className="text-[10px] sm:text-xs font-medium leading-tight">
+            💻 Tampilan terbaik di Desktop Mode — aktifkan via menu browser
           </p>
         </div>
       </div>
@@ -70,35 +70,35 @@ export default function LoginPage() {
         <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-emerald-100 dark:bg-emerald-900/20 opacity-50" />
       </div>
 
-      <div className="relative w-full max-w-md">
+      <div className="relative w-full max-w-sm sm:max-w-md">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-green-600 text-white shadow-lg dark:shadow-green-900/50 mb-4 overflow-hidden">
+        <div className="text-center mb-5 sm:mb-6">
+          <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-green-600 text-white shadow-lg dark:shadow-green-900/50 mb-3 sm:mb-4 overflow-hidden">
             <img src="/logo-mbg.webp" alt="MBG" className="w-full h-full object-contain" />
           </div>
-          <h1 className="text-2xl font-extrabold text-slate-800 dark:text-slate-200">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-slate-200">
             MBG
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Pemantauan Status Gizi Siswa — SD / MI / SMP / SMA Negeri
+          <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-1 px-2">
+            Pemantauan Status Gizi Siswa
           </p>
         </div>
 
         {/* Card */}
-        <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl dark:shadow-slate-900 shadow-green-100/50 border border-slate-100 dark:border-slate-700 overflow-hidden">
-          <div className="p-8">
-            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-1">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl sm:rounded-3xl shadow-xl dark:shadow-slate-900 shadow-green-100/50 border border-slate-100 dark:border-slate-700 overflow-hidden">
+          <div className="p-5 sm:p-6 lg:p-8">
+            <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-200 mb-1">
               Masuk ke Dashboard
             </h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-              Masukkan kredensial petugas UKS untuk melanjutkan
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-5">
+              Masukkan kredensial petugas UKS
             </p>
 
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-3 sm:space-y-4">
               <Input
                 label="Email"
                 type="email"
-                placeholder="ramadhanstark05@gmail.com"
+                placeholder="email@contoh.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
@@ -109,7 +109,7 @@ export default function LoginPage() {
                 <Input
                   label="Password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Masukkan password"
+                  placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="current-password"
@@ -128,7 +128,7 @@ export default function LoginPage() {
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm">
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs sm:text-sm">
                   <AlertCircle className="h-4 w-4 flex-shrink-0" />
                   <span>{error}</span>
                 </div>
@@ -137,23 +137,17 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 variant="primary"
-                size="xl"
+                size="lg"
                 loading={loading}
                 className="w-full mt-2"
               >
                 Masuk
               </Button>
 
-              <div className="relative flex items-center gap-3 my-2">
-                <div className="flex-1 h-px bg-slate-200 dark:bg-slate-600" />
-                <span className="text-xs text-slate-400 dark:text-slate-500">atau</span>
-                <div className="flex-1 h-px bg-slate-200 dark:bg-slate-600" />
-              </div>
-
               <button
                 type="button"
                 onClick={() => router.push("/dashboard")}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 hover:border-slate-300 dark:hover:border-slate-500 transition-all"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 hover:border-slate-300 dark:hover:border-slate-500 transition-all"
               >
                 <Users className="h-4 w-4" />
                 Masuk sebagai Pengunjung
@@ -162,14 +156,14 @@ export default function LoginPage() {
           </div>
 
           {/* Footer */}
-          <div className="px-8 py-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-700">
-            <p className="text-xs text-center text-slate-400 dark:text-slate-500">
-              Gunakan kredensial yang diberikan oleh administrator sistem
+          <div className="px-5 sm:px-6 lg:px-8 py-3 sm:py-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-700">
+            <p className="text-[10px] sm:text-xs text-center text-slate-400 dark:text-slate-500">
+              Gunakan kredensial dari administrator
             </p>
           </div>
         </div>
 
-        <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-6">
+        <p className="text-center text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-4 sm:mt-6">
           Standar WHO 2007 &middot; Powered by MBG
         </p>
       </div>

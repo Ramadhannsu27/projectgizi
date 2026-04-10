@@ -35,40 +35,34 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-slate-950">
       {/* Mobile header — only visible on mobile */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 py-3 flex items-center gap-3">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-3 py-2.5 flex items-center gap-2">
         <button
           onClick={() => setMobileOpen(true)}
-          className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex-shrink-0"
         >
           <Menu className="h-5 w-5 text-slate-600 dark:text-slate-300" />
         </button>
-        <img src="/logo-mbg.webp" alt="MBG" className="h-8 w-auto" />
-        <span className="font-bold text-slate-800 dark:text-white text-sm">Project Gizi</span>
-      </div>
-
-      {/* Desktop mode hint — floating button for mobile */}
-      <div className="lg:hidden fixed bottom-4 right-4 z-40">
-        <a
-          href="javascript:void(0)"
-          onClick={() => alert('Aktifkan Desktop Mode di browser:\n\nChrome: ⋮ → ✅ Desktop site\nSafari: Share → Desktop Website\n\nAtau putar HP ke landscape')}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-3 rounded-2xl shadow-lg text-xs font-semibold"
-        >
-          💻 Desktop Mode
-        </a>
+        <img src="/logo-mbg.webp" alt="MBG" className="h-7 w-auto flex-shrink-0" />
+        <span className="font-bold text-slate-800 dark:text-white text-sm truncate">Project Gizi</span>
+        <div className="ml-auto flex-shrink-0">
+          <span className="text-[10px] bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full font-semibold">
+            💻 Desktop
+          </span>
+        </div>
       </div>
 
       {/* Mobile sidebar overlay */}
       {mobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-50 bg-black/40"
+          className="lg:hidden fixed inset-0 z-50 bg-black/50"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
-      {/* Mobile sidebar drawer — only visible on mobile */}
+      {/* Mobile sidebar drawer */}
       <div
         className={`
-          lg:hidden fixed top-0 left-0 bottom-0 z-50 bg-white dark:bg-slate-900 shadow-xl transition-transform duration-300 w-[260px]
+          lg:hidden fixed top-0 left-0 bottom-0 z-50 bg-white dark:bg-slate-900 shadow-2xl transition-transform duration-300 w-[280px]
           ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
@@ -76,7 +70,7 @@ export default function DashboardLayout({
           <img src="/logo-mbg.webp" alt="MBG" className="h-8 w-auto" />
           <button
             onClick={() => setMobileOpen(false)}
-            className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
           >
             <X className="h-5 w-5 text-slate-500" />
           </button>
@@ -84,23 +78,22 @@ export default function DashboardLayout({
         <Sidebar />
       </div>
 
-      {/* Desktop sidebar — only visible on lg+ */}
+      {/* Desktop sidebar */}
       <div className="hidden lg:block">
         <Sidebar />
       </div>
 
-      {/* Main content — responsive margin */}
+      {/* Main content */}
       <main
         className="min-h-screen transition-all duration-300"
         style={{
-          // No margin on mobile (sidebar hidden), margin only on lg+
           marginLeft: sidebarCollapsed ? "72px" : "260px",
         }}
       >
-        {/* Mobile top padding — only on mobile to account for fixed header */}
-        <div className="lg:hidden h-14" />
+        {/* Mobile top padding */}
+        <div className="lg:hidden h-12" />
         <TopBar />
-        <div className="p-4 sm:p-6 lg:p-8">{children}</div>
+        <div className="p-3 sm:p-5 lg:p-8">{children}</div>
       </main>
     </div>
   );

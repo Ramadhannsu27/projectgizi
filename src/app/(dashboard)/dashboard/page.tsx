@@ -99,11 +99,11 @@ const STAT_CARDS = [
 function StatSkeleton() {
   return (
     <Card className={`${B} overflow-hidden`}>
-      <CardContent className="p-5">
-        <Skeleton className="h-10 w-10 rounded-xl mb-3" />
-        <Skeleton className="h-3 w-20 mb-2" />
-        <Skeleton className="h-8 w-16 mb-2" />
-        <Skeleton className="h-3 w-28" />
+      <CardContent className="p-3 sm:p-5">
+        <Skeleton className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl mb-2 sm:mb-3" />
+        <Skeleton className="h-2 w-16 sm:h-3 sm:w-20 mb-1.5 sm:mb-2" />
+        <Skeleton className="h-6 sm:h-8 w-12 sm:w-16 mb-1.5 sm:mb-2" />
+        <Skeleton className="h-2 w-20 sm:h-3 sm:w-28" />
       </CardContent>
     </Card>
   );
@@ -127,34 +127,34 @@ function StatCard({
   return (
     <Link href={href}>
       <Card className={`${B} ${card.border} overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer`}>
-        <CardContent className="p-5">
-          <div className="flex items-start justify-between mb-3">
-            <div className={`p-2.5 rounded-xl ${card.bg}`}>
-              <card.icon className={`h-5 w-5 ${card.text}`} />
+        <CardContent className="p-3 sm:p-5">
+          <div className="flex items-start justify-between mb-2 sm:mb-3">
+            <div className={`p-2 sm:p-2.5 rounded-xl ${card.bg}`}>
+              <card.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${card.text}`} />
             </div>
             {change !== undefined && (
-              <div className={`flex items-center gap-0.5 text-xs font-bold px-2 py-1 rounded-full ${
+              <div className={`flex items-center gap-0.5 text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full ${
                 changeDir === "up"
                   ? "text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400"
                   : changeDir === "down"
                   ? "text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400"
                   : "text-slate-500 bg-slate-100 dark:bg-slate-700 dark:text-slate-400"
               }`}>
-                {changeDir === "up" ? <TrendingUp className="h-3 w-3" />
-                  : changeDir === "down" ? <TrendingDown className="h-3 w-3" />
-                  : <Minus className="h-3 w-3" />}
-                {change}%
+                {changeDir === "up" ? <TrendingUp className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                  : changeDir === "down" ? <TrendingDown className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                  : <Minus className="h-2.5 w-2.5 sm:h-3 sm:w-3" />}
+                <span className="hidden sm:inline">{change}%</span>
               </div>
             )}
           </div>
-          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+          <p className="text-[10px] sm:text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider leading-tight">
             {card.label}
           </p>
-          <p className="text-3xl font-extrabold text-slate-800 dark:text-slate-100 mt-1">
+          <p className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-slate-100 mt-0.5 sm:mt-1 leading-none">
             {value}
           </p>
           {note && (
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{note}</p>
+            <p className="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-0.5 sm:mt-1 leading-tight">{note}</p>
           )}
         </CardContent>
       </Card>
