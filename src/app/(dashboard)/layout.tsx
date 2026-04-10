@@ -34,11 +34,11 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-slate-950">
-      {/* Mobile header */}
+      {/* Mobile header — only visible on mobile */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 py-3 flex items-center gap-3">
         <button
           onClick={() => setMobileOpen(true)}
-          className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
         >
           <Menu className="h-5 w-5 text-slate-600 dark:text-slate-300" />
         </button>
@@ -54,7 +54,7 @@ export default function DashboardLayout({
         />
       )}
 
-      {/* Sidebar */}
+      {/* Mobile sidebar drawer — only visible on mobile */}
       <div
         className={`
           lg:hidden fixed top-0 left-0 bottom-0 z-50 bg-white dark:bg-slate-900 shadow-xl transition-transform duration-300 w-[260px]
@@ -65,7 +65,7 @@ export default function DashboardLayout({
           <img src="/logo-mbg.webp" alt="MBG" className="h-8 w-auto" />
           <button
             onClick={() => setMobileOpen(false)}
-            className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
           >
             <X className="h-5 w-5 text-slate-500" />
           </button>
@@ -73,17 +73,20 @@ export default function DashboardLayout({
         <Sidebar />
       </div>
 
-      {/* Desktop sidebar */}
+      {/* Desktop sidebar — only visible on lg+ */}
       <div className="hidden lg:block">
         <Sidebar />
       </div>
 
-      {/* Main content */}
+      {/* Main content — responsive margin */}
       <main
         className="min-h-screen transition-all duration-300"
-        style={{ marginLeft: sidebarCollapsed ? "72px" : "260px" }}
+        style={{
+          // No margin on mobile (sidebar hidden), margin only on lg+
+          marginLeft: sidebarCollapsed ? "72px" : "260px",
+        }}
       >
-        {/* Mobile top padding to account for fixed header */}
+        {/* Mobile top padding — only on mobile to account for fixed header */}
         <div className="lg:hidden h-14" />
         <TopBar />
         <div className="p-4 sm:p-6 lg:p-8">{children}</div>

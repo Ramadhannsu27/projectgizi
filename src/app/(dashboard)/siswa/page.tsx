@@ -281,29 +281,31 @@ export default function SiswaPage() {
             {loading ? "Memuat..." : `${students.length} siswa terdaftar`}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <a
             href={`/api/students/export?format=xlsx${search ? `&search=${encodeURIComponent(search)}` : ""}`}
             download
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+            className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
           >
             <Download className="h-4 w-4" />
-            Export XLSX
+            <span className="hidden sm:inline">Export XLSX</span>
+            <span className="sm:hidden">XLSX</span>
           </a>
           <a
             href={`/api/students/export?format=csv${search ? `&search=${encodeURIComponent(search)}` : ""}`}
             download
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+            className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
           >
-            Export CSV
+            <span className="hidden sm:inline">Export CSV</span>
+            <span className="sm:hidden">CSV</span>
           </a>
           {authed && (
             <>
               <label
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer transition-colors"
+                className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer transition-colors"
               >
                 <Upload className="h-4 w-4" />
-                Import Excel
+                <span className="hidden sm:inline">Import</span>
                 <input
                   type="file"
                   accept=".xlsx,.xls,.csv"
@@ -312,9 +314,10 @@ export default function SiswaPage() {
                   disabled={importing}
                 />
               </label>
-              <Button variant="primary" size="lg" onClick={openAdd}>
-                <Plus className="h-5 w-5" />
-                Tambah Siswa
+              <Button variant="primary" size="md" onClick={openAdd} className="sm:size-lg">
+                <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">Tambah Siswa</span>
+                <span className="sm:hidden">Tambah</span>
               </Button>
             </>
           )}

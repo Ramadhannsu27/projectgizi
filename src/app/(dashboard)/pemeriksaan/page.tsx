@@ -643,9 +643,9 @@ export default function PemeriksaanPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Undo / Redo Buttons */}
-              <div className="col-span-2 flex items-center justify-end gap-1 -mb-2">
+              <div className="col-span-1 sm:col-span-2 flex items-center justify-end gap-1 -mb-2">
                 <button
                   onClick={handleUndo}
                   disabled={!canUndo}
@@ -690,7 +690,7 @@ export default function PemeriksaanPage() {
                         placeholder="0.0"
                         value={height}
                         onChange={(e) => setHeight(e.target.value)}
-                        className="h-20 w-full rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 pl-5 pr-14 text-2xl font-bold text-slate-800 dark:text-white focus:outline-none focus:border-green-500 transition-colors"
+                        className="h-14 sm:h-20 w-full rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 pl-4 sm:pl-5 pr-10 sm:pr-14 text-xl sm:text-2xl font-bold text-slate-800 dark:text-white focus:outline-none focus:border-green-500 transition-colors"
                         autoFocus
                       />
                       <span className="absolute right-5 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400 dark:text-slate-300">
@@ -714,7 +714,7 @@ export default function PemeriksaanPage() {
                         placeholder="0.0"
                         value={weight}
                         onChange={(e) => setWeight(e.target.value)}
-                        className="h-20 w-full rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 pl-5 pr-14 text-2xl font-bold text-slate-800 dark:text-white focus:outline-none focus:border-green-500 transition-colors"
+                        className="h-14 sm:h-20 w-full rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 pl-4 sm:pl-5 pr-10 sm:pr-14 text-xl sm:text-2xl font-bold text-slate-800 dark:text-white focus:outline-none focus:border-green-500 transition-colors"
                       />
                       <span className="absolute right-5 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400 dark:text-slate-300">
                         kg
@@ -734,7 +734,7 @@ export default function PemeriksaanPage() {
                         type="number"
                         placeholder="Login untuk input"
                         disabled
-                        className="h-20 w-full rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 pl-5 pr-14 text-2xl font-bold text-slate-400 cursor-not-allowed"
+                        className="h-14 sm:h-20 w-full rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 pl-4 sm:pl-5 pr-10 sm:pr-14 text-xl sm:text-2xl font-bold text-slate-400 cursor-not-allowed"
                       />
                       <span className="absolute right-5 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400 dark:text-slate-300">
                         cm
@@ -750,7 +750,7 @@ export default function PemeriksaanPage() {
                         type="number"
                         placeholder="Login untuk input"
                         disabled
-                        className="h-20 w-full rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 pl-5 pr-14 text-2xl font-bold text-slate-400 cursor-not-allowed"
+                        className="h-14 sm:h-20 w-full rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 pl-4 sm:pl-5 pr-10 sm:pr-14 text-xl sm:text-2xl font-bold text-slate-400 cursor-not-allowed"
                       />
                       <span className="absolute right-5 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400 dark:text-slate-300">
                         kg
@@ -969,7 +969,7 @@ export default function PemeriksaanPage() {
         size="lg"
       >
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="NIS *"
               placeholder="2024001"
@@ -983,7 +983,7 @@ export default function PemeriksaanPage() {
               onChange={(e) => setNewStudent({ ...newStudent, full_name: e.target.value })}
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="block text-sm font-semibold text-slate-700 dark:text-white">
                 Jenis Kelamin *

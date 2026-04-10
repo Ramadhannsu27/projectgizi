@@ -364,26 +364,23 @@ export default function DashboardPage() {
             </div>
           </div>
           <CardContent className="p-0">
-            <div className={`grid grid-cols-12 gap-3 px-5 py-2.5 ${TH}`}>
+            {/* Desktop table header */}
+            <div className={`hidden lg:grid grid-cols-12 gap-3 px-5 py-2.5 ${TH}`}>
               {selectedSchool === "all" && <div className="col-span-4">Sekolah / Kelas</div>}
-              {selectedSchool === "all" ? (
-                <div className="col-span-2 text-center">Total</div>
-              ) : (
-                <div className="col-span-3 text-center">Kelas</div>
-              )}
-              {selectedSchool === "all" ? (
-                <div className="col-span-2 text-center">Diperiksa</div>
-              ) : (
-                <div className="col-span-2 text-center">Total</div>
-              )}
-              <div className={selectedSchool === "all" ? "col-span-2 text-center" : "col-span-2 text-center"}>Normal</div>
-              <div className={selectedSchool === "all" ? "col-span-2 text-center" : "col-span-2 text-center"}>Status</div>
+              <div className={selectedSchool === "all" ? "col-span-2 text-center" : "col-span-3 text-center"}>
+                {selectedSchool === "all" ? "Total" : "Kelas"}
+              </div>
+              <div className={selectedSchool === "all" ? "col-span-2 text-center" : "col-span-2 text-center"}>
+                {selectedSchool === "all" ? "Diperiksa" : "Total"}
+              </div>
+              <div className="col-span-2 text-center">Normal</div>
+              <div className="col-span-2 text-center">Status</div>
             </div>
 
             {loading ? (
-              <div className="px-5 py-3 space-y-2">
+              <div className="px-4 sm:px-5 py-3 space-y-2">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <Skeleton key={i} className="h-9 w-full rounded-lg" />
+                  <Skeleton key={i} className="h-12 w-full rounded-lg" />
                 ))}
               </div>
             ) : summary?.classes && summary.classes.length > 0 ? (
@@ -392,10 +389,11 @@ export default function DashboardPage() {
                   ? summary.classes
                   : summary.classes.filter(c => c.school_name === selectedSchool);
                 return filteredClasses.length > 0 ? (
-                  <div className="divide-y divide-slate-100 dark:divide-slate-700/50">
+                  <div className="space-y-2 px-3 py-2 lg:divide-y lg:divide-slate-100 dark:lg:divide-slate-700/50">
                     {filteredClasses.slice(0, 8).map((cls) => (
                       <Link key={`${cls.school_name}::${cls.class_name}`} href={`/laporan?class=${encodeURIComponent(cls.class_name)}`}>
-                        <div className="grid grid-cols-12 gap-3 px-5 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer items-center">
+                        {/* Desktop row — hidden on mobile */}
+                        <div className="hidden lg:grid grid-cols-12 gap-3 py-2.5 px-5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer items-center">
                           {selectedSchool === "all" && (
                             <div className="col-span-4 flex items-center gap-2">
                               <div className="w-7 h-7 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-xs font-bold text-green-600 dark:text-green-400 flex-shrink-0">
@@ -416,23 +414,51 @@ export default function DashboardPage() {
                             <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{cls.measured}</span>
                             <span className="text-xs text-slate-400 dark:text-slate-500">/{cls.total_students}</span>
                           </div>
-                          <div className={selectedSchool === "all" ? "col-span-2 text-center" : "col-span-2 text-center"}>
+                          <div className="col-span-2 text-center">
                             <span className={`text-sm font-bold ${
                               cls.normal_percent >= 70 ? "text-green-600 dark:text-green-400"
                                 : cls.normal_percent >= 40 ? "text-amber-600 dark:text-amber-400"
                                 : "text-red-600 dark:text-red-400"
                             }`}>{cls.normal_percent}%</span>
                           </div>
-                          <div className={selectedSchool === "all" ? "col-span-2 flex justify-center" : "col-span-2 flex justify-center"}>
+                          <div className="col-span-2 flex justify-center">
                             <Badge variant={cls.status === "Normal" ? "normal" : cls.status === "Belum Diperiksa" ? "secondary" : STATUS_BADGE[cls.status] || "info"} className="text-xs">
                               {cls.status}
                             </Badge>
                           </div>
                         </div>
+
+                        {/* Mobile card — shown on mobile only */}
+                        <div className="lg:hidden flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 hover:border-green-400 dark:hover:border-green-600 transition-colors cursor-pointer mb-2 last:mb-0">
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className="w-9 h-9 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-xs font-bold text-green-600 dark:text-green-400 flex-shrink-0">
+                              {cls.school_name.charAt(0)}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">
+                                {selectedSchool === "all" ? `${cls.school_name} / ` : ""}{cls.class_name}
+                              </p>
+                              <p className="text-xs text-slate-400 mt-0.5">
+                                {cls.measured}/{cls.total_students} diperiksa
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                            <span className={`text-sm font-bold ${
+                              cls.normal_percent >= 70 ? "text-green-600"
+                                : cls.normal_percent >= 40 ? "text-amber-600"
+                                : "text-red-600"
+                            }`}>{cls.normal_percent}%</span>
+                            <Badge variant={cls.status === "Normal" ? "normal" : cls.status === "Belum Diperiksa" ? "secondary" : STATUS_BADGE[cls.status] || "info"} className="text-xs">
+                              {cls.status}
+                            </Badge>
+                            <ChevronRight className="h-4 w-4 text-slate-300" />
+                          </div>
+                        </div>
                       </Link>
                     ))}
                     {filteredClasses.length > 8 && (
-                      <div className="px-5 py-2.5 text-center">
+                      <div className="py-2 text-center">
                         <Link href="/siswa">
                           <Button variant="ghost" size="sm" className="text-xs text-slate-500">
                             + {filteredClasses.length - 8} kelas lainnya <ChevronRight className="h-3 w-3 ml-1" />

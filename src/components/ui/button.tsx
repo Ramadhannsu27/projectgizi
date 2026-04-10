@@ -52,8 +52,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     const sizes: Record<string, string> = {
-      sm: "h-8 px-3 text-sm",
-      md: "h-10 px-4 text-sm",
+      sm: "h-10 px-4 text-sm",  // Increased: 32→40px for touch
+      md: "h-11 px-5 text-sm",  // Increased: 40→44px for touch
       lg: "h-12 px-6 text-base",
       xl: "h-14 px-8 text-lg",
     };

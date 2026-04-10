@@ -155,7 +155,7 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "group flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-200 relative",
+                "group flex items-center gap-3 px-3 py-3 min-h-[48px] rounded-xl text-sm font-semibold transition-all duration-200 relative",
                 isActive
                   ? "bg-green-600 text-white shadow-sm shadow-green-600/20"
                   : "text-slate-300 hover:bg-slate-800 hover:text-white",
@@ -235,7 +235,7 @@ export function Sidebar() {
           <button
             onClick={handleLogout}
             className={cn(
-              "flex items-center gap-3 px-3 py-2.5 w-full text-sm font-semibold text-slate-300 rounded-xl hover:bg-red-900/20 hover:text-red-400 transition-colors",
+              "flex items-center gap-3 px-3 py-3 min-h-[48px] w-full text-sm font-semibold text-slate-300 rounded-xl hover:bg-red-900/20 hover:text-red-400 transition-colors",
               collapsed && "justify-center px-0"
             )}
             title="Keluar"
@@ -247,7 +247,7 @@ export function Sidebar() {
           <button
             onClick={() => router.push("/login")}
             className={cn(
-              "flex items-center gap-3 px-3 py-2.5 w-full text-sm font-semibold rounded-xl bg-green-600 hover:bg-green-500 text-white transition-colors",
+              "flex items-center gap-3 px-3 py-3 min-h-[48px] w-full text-sm font-semibold rounded-xl bg-green-600 hover:bg-green-500 text-white transition-colors",
               collapsed && "justify-center px-0"
             )}
             title="Login"
