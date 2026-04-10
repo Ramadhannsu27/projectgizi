@@ -3,6 +3,19 @@
 /* Enable class-based dark mode for Tailwind v4 */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Force mobile layout on touch devices — overrides lg: breakpoints on phones */
+/* This ensures sidebar stays hidden and mobile layout shows even in Desktop Site Mode */
+@media (pointer: coarse) {
+  /* Force desktop sidebar to hide on touch devices */
+  .force-mobile-sidebar-hide {
+    display: none !important;
+  }
+  /* Force desktop content to use full width */
+  .force-mobile-full {
+    margin-left: 0 !important;
+  }
+}
+
 @theme inline {
   --color-primary: #16a34a;
   --color-primary-light: #22c55e;

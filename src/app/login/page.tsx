@@ -55,15 +55,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 p-3 sm:p-4">
-      {/* Desktop mode hint for mobile */}
-      <div className="fixed top-0 left-0 right-0 z-50 lg:hidden">
-        <div className="bg-blue-600 text-white px-3 py-2 text-center">
-          <p className="text-[10px] sm:text-xs font-medium leading-tight">
-            💻 Tampilan terbaik di Desktop Mode — aktifkan via menu browser
-          </p>
-        </div>
-      </div>
-
       {/* Background decoration */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-green-100 dark:bg-green-900/20 opacity-50" />

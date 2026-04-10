@@ -35,7 +35,7 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-slate-950">
       {/* Mobile header — only visible on mobile */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-3 py-2.5 flex items-center gap-2">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-3 py-2 flex items-center gap-2">
         <button
           onClick={() => setMobileOpen(true)}
           className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex-shrink-0"
@@ -44,11 +44,6 @@ export default function DashboardLayout({
         </button>
         <img src="/logo-mbg.webp" alt="MBG" className="h-7 w-auto flex-shrink-0" />
         <span className="font-bold text-slate-800 dark:text-white text-sm truncate">Project Gizi</span>
-        <div className="ml-auto flex-shrink-0">
-          <span className="text-[10px] bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full font-semibold">
-            💻 Desktop
-          </span>
-        </div>
       </div>
 
       {/* Mobile sidebar overlay */}
@@ -78,14 +73,14 @@ export default function DashboardLayout({
         <Sidebar />
       </div>
 
-      {/* Desktop sidebar */}
-      <div className="hidden lg:block">
+      {/* Desktop sidebar — hide on touch devices */}
+      <div className="hidden lg:block force-mobile-sidebar-hide">
         <Sidebar />
       </div>
 
       {/* Main content */}
       <main
-        className="min-h-screen transition-all duration-300"
+        className="min-h-screen transition-all duration-300 force-mobile-full"
         style={{
           marginLeft: sidebarCollapsed ? "72px" : "260px",
         }}
