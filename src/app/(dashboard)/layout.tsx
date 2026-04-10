@@ -54,16 +54,13 @@ export default function DashboardLayout({
         />
       )}
 
-      {/* Mobile sidebar drawer */}
+      {/* Mobile sidebar drawer — no header, just the nav */}
       <div
         className={`
-          lg:hidden fixed top-0 left-0 bottom-0 z-50 bg-white dark:bg-slate-900 shadow-2xl transition-transform duration-300 w-[280px]
+          lg:hidden fixed top-0 left-0 bottom-0 z-50 bg-white dark:bg-slate-900 shadow-2xl transition-transform duration-300 w-[260px]
           ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
-        <div className="flex items-center gap-3 p-4 border-b border-slate-200 dark:border-slate-700">
-          <img src="/logo-mbg.webp" alt="MBG" className="h-8 w-auto" />
-        </div>
         <Sidebar />
       </div>
 
