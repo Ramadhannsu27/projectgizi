@@ -28,7 +28,7 @@ export function TopBar() {
       <div className="flex items-center justify-between h-[60px] px-6">
         {/* Title */}
         <div>
-          <h1 className="text-lg font-bold text-slate-800 dark:text-slate-100">
+          <h1 className="text-lg font-bold text-slate-800 dark:text-slate-100 hidden lg:block">
             Dashboard
           </h1>
         </div>
